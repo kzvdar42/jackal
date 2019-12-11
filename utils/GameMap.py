@@ -142,7 +142,7 @@ def map_to_img(game_map, tile_shape=(64, 64)):
     for (x, y), tile in np.ndenumerate(game_map):
         if tile.tile_type != 'water':  # TODO: Add 'water' tile image.
             tile_img = cv2.imread(os.path.join(
-                'main_img_res', tile.tile_type + '.png'))
+                'tile_images', tile.tile_type + '.png'))
             tile_img = resize_and_rotate_img(
                 tile_img, tile_shape, tile.direction)
             map_img[x * tile_shape[0]:(x+1) * tile_shape[0],
