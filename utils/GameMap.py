@@ -1,15 +1,16 @@
-import numpy as np
-import cv2
-import random
 import os
+import random
+
+import numpy as np
+from PIL import Image
 
 # Tile direction format
-__tile_dirs = {  # TODO: change to a more readable format ('left', 'right', etc.)
-    0:   0,  # ->
-    1:  90,  # ↑
-    2: 180,  # <-
-    3: 270,  # ↓
-}
+__tile_dirs = [  # TODO: change to a more readable format ('left', 'right', etc.)
+    0,  # ->
+    90,  # ↑
+    180,  # <-
+    270,  # ↓
+]
 
 # Shape of the game map
 __map_shape = (13, 13)
@@ -65,12 +66,12 @@ class Tile:
 def __is_in_water(x, y):
     """Check if this coordinates are in water."""
     return (
-        x == 0 or y == 0 or
-        x == 12 or y == 12 or
-        (x == 1 and y == 1) or
-        (x == 11 and y == 11) or
-        (x == 1 and y == 11) or
-        (x == 11 and y == 1)
+            x == 0 or y == 0 or
+            x == 12 or y == 12 or
+            (x == 1 and y == 1) or
+            (x == 11 and y == 11) or
+            (x == 1 and y == 11) or
+            (x == 11 and y == 1)
     )
 
 
@@ -104,7 +105,7 @@ def create_map():
                     del tiles[tile_type]
 
             # Set random direction
-            tile_dir = random.sample(list(__tile_dirs), 1)[0]
+            tile_dir = random.sample(__tile_dirs, 1)[0]
             game_map[y][x] = Tile(tile_type, tile_dir)
 
     assert len(tiles) == 0, 'All tiles must be used during the map creation!'
@@ -119,16 +120,17 @@ def resize_and_rotate_img(tile_img, tile_shape, direction):
     :param direction: Rotation direction in `__tile_dirs` key format
     :return: Processed image
     """
-    res_img = cv2.resize(tile_img.copy(), tile_shape)
 
-    dir_to_rot = {
-        1: cv2.ROTATE_90_CLOCKWISE,
-        2: cv2.ROTATE_180,
-        3: cv2.ROTATE_90_COUNTERCLOCKWISE,
-    }
+    res_img = tile_img.copy().resize(tile_shape)
+
+    # dir_to_rot = {
+    #     1: cv2.ROTATE_90_CLOCKWISE,
+    #     2: cv2.ROTATE_180,
+    #     3: cv2.ROTATE_90_COUNTERCLOCKWISE,
+    # }
 
     if direction:
-        res_img = cv2.rotate(res_img, dir_to_rot[direction])
+        res_img = res_img.rotate(direction)
 
     return res_img
 
@@ -138,13 +140,13 @@ def map_to_img(game_map, tile_shape=(64, 64)):
     map_img = np.zeros(
         (tile_shape[0] * game_map.shape[0],
          tile_shape[1] * game_map.shape[1], 3),
-        dtype=int)
+        dtype=np.uint8)
     for (x, y), tile in np.ndenumerate(game_map):
         if tile.tile_type != 'water':  # TODO: Add 'water' tile image.
-            tile_img = cv2.imread(os.path.join(
+            tile_img = Image.open(os.path.join(
                 'tile_images', tile.tile_type + '.png'))
             tile_img = resize_and_rotate_img(
                 tile_img, tile_shape, tile.direction)
-            map_img[x * tile_shape[0]:(x+1) * tile_shape[0],
-                    y * tile_shape[1]:(y+1) * tile_shape[1]] = tile_img
-    return map_img
+            map_img[x * tile_shape[0]:(x + 1) * tile_shape[0],
+            y * tile_shape[1]:(y + 1) * tile_shape[1]] = tile_img
+    return Image.fromarray(map_img)
