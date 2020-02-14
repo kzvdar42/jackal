@@ -123,12 +123,6 @@ def resize_and_rotate_img(tile_img, tile_shape, direction):
 
     res_img = tile_img.copy().resize(tile_shape)
 
-    # dir_to_rot = {
-    #     1: cv2.ROTATE_90_CLOCKWISE,
-    #     2: cv2.ROTATE_180,
-    #     3: cv2.ROTATE_90_COUNTERCLOCKWISE,
-    # }
-
     if direction:
         res_img = res_img.rotate(direction)
 
