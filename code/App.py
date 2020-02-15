@@ -25,17 +25,17 @@ class App(QWidget):
         # Init widget.
         super().__init__()
         self.num_of_players = num_of_players
-        self.tile_size = 64
         self.key_press = ''
 
         # Init the game map.
-        self.game_map = GameMap.create_map()
+        self.game_map = GameMap.GameMap(tile_size=64)
         # Init players.
         self.cur_player = 0
         self.players = []
         colors = Player._get_possible_colors()  # TODO: Shuffle colors?
         for i in range(num_of_players):
-            self.players.append(Player(colors[i], side=i))
+            start_coords = self.game_map.get_side_center_coords(side=i)
+            self.players.append(Player(colors[i], start_coords, side=i))
 
         # Init Qt things.
         self.time = QBasicTimer()
@@ -54,7 +54,7 @@ class App(QWidget):
 
     def update(self):
         # Draw the game map.
-        game_map_img = ImageQt(GameMap.map_to_img(self.game_map))
+        game_map_img = ImageQt(self.game_map.map_to_img())
         self.pixmap = QPixmap.fromImage(game_map_img).copy()
         self.show()
 
@@ -67,7 +67,7 @@ class App(QWidget):
         # Draw the game map.
         painter.drawPixmap(0, 0, self.pixmap)
         # Draw the players.
-        GameMap.display_players(painter, self.players)
+        self.game_map.display_players(painter, self.players)
 
     def keyPressEvent(self, e):
         pressed = e.key()

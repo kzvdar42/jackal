@@ -1,6 +1,3 @@
-from GameMap import get_side_center_coords
-
-
 class Character:
     """Game character.
     Possible `ch_types` are: `pirate`.
@@ -26,9 +23,9 @@ class Player:
             'yellow',
         ]
 
-    def __init__(self, color, side):
+    def __init__(self, color, start_coords, side):
         self.color = color
-        self.corner = side
-        start_coords = get_side_center_coords(side)
+        self.side = side
+        self.ship_coords = start_coords
         self.characters = [Character(start_coords, ch_type='pirate')
                            for _ in range(3)]
