@@ -3,7 +3,6 @@ import time
 import random
 
 from PIL.ImageQt import ImageQt
-
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPixmap
 from PyQt5.QtCore import Qt, QPoint, QBasicTimer
@@ -28,7 +27,7 @@ class App(QWidget):
         self.num_of_players = num_of_players
         self.tile_size = 64
         self.key_press = ''
-        
+
         # Init the game map.
         self.game_map = GameMap.create_map()
         # Init players.
@@ -47,7 +46,7 @@ class App(QWidget):
     def UI(self):
         self.setWindowTitle('Jackal')
         self.update()
-        
+
         # Resize the widget to fit the game map.
         # self.setFixedSize(pixmap.width(), pixmap.height())
         self.resize(self.pixmap.width(), self.pixmap.height())

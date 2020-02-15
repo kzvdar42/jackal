@@ -5,6 +5,7 @@ class Character:
     """Game character.
     Possible `ch_types` are: `pirate`.
     """
+
     def __init__(self, coords, ch_type):
         self.coords = coords
         self.ch_type = ch_type

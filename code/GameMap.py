@@ -108,7 +108,7 @@ def create_map():
     tiles = __all_tiles.copy()
     for x in range(__map_shape[0]):
         for y in range(__map_shape[1]):
-            # Check if this is a water tile
+            # Check if this is a water tile1
             if __is_in_water(x, y):
                 tile_type = 'water'
             else:
@@ -180,8 +180,6 @@ def map_to_img(game_map, tile_size=64):
 
 
 # @staticmethod
-
-
 def color_to_rgb(game_color):
     return {
         'red': (238, 29, 35),
