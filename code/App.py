@@ -68,6 +68,10 @@ class App(QWidget):
         else:
             self.key_press = pressed
 
+    def mousePressEvent(self, event):
+        self.game_logic.mouse_click((event.x(), event.y()))
+        self.update()
+
     def timerEvent(self, e):
         if self.key_press in self.__key_to_direction:
             self.game_logic.move_character(

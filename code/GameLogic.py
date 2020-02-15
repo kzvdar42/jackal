@@ -3,6 +3,7 @@ from Characters import Player
 
 
 class GameLogic:
+    """The main logic of the game."""
 
     def __init__(self, num_of_players: int):
         assert num_of_players >= 1 and num_of_players <= 4
@@ -20,10 +21,12 @@ class GameLogic:
             start_coords = self.game_map.get_side_center_coords(side=i)
             self.players.append(Player(colors[i], start_coords, side=i))
 
+    def mouse_click(self, pos):
+        x, y = self.game_map.unscale_coords(pos)
+        self.game_map.game_map[y][x].is_open = True
+
     def _get_current_character(self):
         return self.players[self.cur_player].characters[self.cur_character]
-
-    """The main logic of the game."""
 
     def move_character(self, direction):
         character = self._get_current_character()

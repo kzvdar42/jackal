@@ -173,6 +173,11 @@ class GameMap:
         return (x * self.tile_size,
                 y * self.tile_size)
 
+    def unscale_coords(self, coords):
+        x, y = coords
+        return (x // self.tile_size,
+                y // self.tile_size)
+
     def map_to_img(self):
         """Create a full image of a map."""
         map_img = np.zeros(
