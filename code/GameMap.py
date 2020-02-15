@@ -54,7 +54,7 @@ class Tile:
 class GameMap:
     # Shape of the game map
     @staticmethod
-    def __get_map_shape():
+    def get_map_shape():
         return (13, 13)
 
     # All game tiles in format {tile_type}:{amount}
@@ -122,7 +122,7 @@ class GameMap:
         :param side: {0: <-, 1: ↑, 2: ->, 3: ↓}
         :return: tuple of coordinates (x, y)
         """
-        map_shape = GameMap.__get_map_shape()
+        map_shape = GameMap.get_map_shape()
         axis_centers = list(map(lambda x: np.floor(x / 2.0), map_shape))
         return {
             0: (0, axis_centers[1]),
@@ -135,7 +135,7 @@ class GameMap:
         """Create a random game map.
 
         :return: numpy array with Tile values."""
-        map_shape = GameMap.__get_map_shape()
+        map_shape = GameMap.get_map_shape()
         game_map = np.empty(map_shape, dtype=Tile)
         tiles = GameMap.__get_all_tiles()
         for x in range(map_shape[0]):
