@@ -34,9 +34,10 @@ def resize_and_rotate_img(tile_img, tile_size, direction):
 
 class Coords:
     """Class for coords and math associated with them."""
+
     def __init__(self, x, y):
         self.coords = x, y
-    
+
     def __perform_op(self, operation, other, inplace=False, from_right=False):
         x, y = self.coords
         if not isinstance(other, Iterable):
@@ -50,56 +51,44 @@ class Coords:
         if inplace:
             self.coords = x, y
         return Coords(x, y)
-    
+
     def get_coords(self):
         return self.coords
-
 
     def set_coords(self, x, y):
         self.coords = x, y
 
-
     def __getitem__(self, idx):
         return self.coords[idx]
-
 
     def __setitem__(self, idx, value):
         self.coords[idx] = value
 
-
     def __len__(self):
         return 2
-
 
     def __hash__(self):
         return hash(self.coords)
 
-
     def __eq__(self, other):
         return self.coords == other.coords
-    
 
     def __add__(self, other):
         return self.__perform_op(operator.add, other)
     __radd__ = __add__
 
-
     def __mul__(self, other):
         return self.__perform_op(operator.mul, other)
     __rmul__ = __mul__
 
-
     def __sub__(self, other):
         return self.__perform_op(operator.sub, other)
-
 
     def __rsub__(self, other):
         return self.__perform_op(operator.sub, other, from_right=True)
 
-
     def __floordiv__(self, other):
         return self.__perform_op(operator.floordiv, other)
-
 
     def __rfloordiv__(self, other):
         return self.__perform_op(operator.floordiv, other, from_right=True)
@@ -243,24 +232,20 @@ class GameMap:
     def resize_and_rotate_img(self, tile_img, direction):
         return resize_and_rotate_img(tile_img, self.tile_size, direction)
 
-
     def get_tile_pixel_inds(self, coords):
         x, y = coords
         return (slice(*self.scale_coords(Coords(x, x + 1))),
                 slice(*self.scale_coords(Coords(y, y + 1))))
-
 
     def scale_coords(self, coords):
         if not isinstance(coords, Coords):
             coords = Coords(*coords)
         return coords * self.tile_size
 
-
     def unscale_coords(self, coords: Coords):
         if not isinstance(coords, Coords):
             coords = Coords(*coords)
         return coords // self.tile_size
-
 
     def map_to_img(self):
         """Create a full image of a map."""
@@ -320,5 +305,5 @@ def color_to_rgb(game_color):
         'white': (255, 255, 255),
         'black': (35, 31, 32),
         'yellow': (255, 221, 23),
-        'green': (127,255,0),
+        'green': (127, 255, 0),
     }[game_color]

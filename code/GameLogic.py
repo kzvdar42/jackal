@@ -11,7 +11,7 @@ class GameLogic:
         assert num_of_players >= 1 and num_of_players <= 4
 
         # Init the game map.
-        self.game_map = GameMap(tile_size = 64)
+        self.game_map = GameMap(tile_size=64)
 
         # Init players.
         self.num_of_players = num_of_players

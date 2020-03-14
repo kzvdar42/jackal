@@ -1,5 +1,6 @@
 # from GameMap import Coords
 
+
 class Character:
     """Game character.
     Possible `ch_types` are: `pirate`.
