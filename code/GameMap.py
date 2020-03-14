@@ -2,6 +2,8 @@ import os
 import random
 
 import numpy as np
+from collections import defaultdict
+
 from PIL import Image
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor
 from PyQt5.QtCore import Qt
@@ -200,13 +202,24 @@ class GameMap:
         return Image.fromarray(map_img)
 
     def display_players(self, painter: QPainter, players):
+
+        def get_character_color(character):
+            if character.ch_type == 'pirate':
+                return QColor(*color_to_rgb(player.color))
+            else:
+                raise NotImplemented('The color for non pirate characters is not yet defined.')
+
+        # TODO: Find a better way to understand if players are on the same tile
+        positions = defaultdict(list)
         for player in players:
             for character in player.characters:
-                if character.ch_type == 'pirate':
-                    color = QColor(*color_to_rgb(player.color))
-                painter.setBrush(QBrush(color, Qt.SolidPattern))
-                painter.drawEllipse(*self.scale_coords(character.coords),
-                                    self.tile_size, self.tile_size)
+                positions[character.coords].append(get_character_color(character))
+        for pos, char_colors in positions.items():
+            for i, ch_color in enumerate(char_colors):
+                painter.setBrush(QBrush(ch_color, Qt.SolidPattern))
+                ellipse_size = self.tile_size / len(char_colors)
+                painter.drawEllipse(*map(lambda x: x + i * ellipse_size, self.scale_coords(pos)),
+                                    ellipse_size, ellipse_size)
 
 
 # @staticmethod
