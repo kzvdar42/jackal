@@ -1,5 +1,7 @@
-from GameMap import GameMap
+from GameMap import GameMap, Coords
 from Characters import Player
+
+from PyQt5.QtGui import QPainter
 
 
 class GameLogic:
@@ -9,7 +11,7 @@ class GameLogic:
         assert num_of_players >= 1 and num_of_players <= 4
 
         # Init the game map.
-        self.game_map = GameMap(tile_size=64)
+        self.game_map = GameMap(tile_size = 64)
 
         # Init players.
         self.num_of_players = num_of_players
@@ -22,6 +24,7 @@ class GameLogic:
             self.players.append(Player(colors[i], start_coords, side=i))
 
     def mouse_click(self, pos):
+        # TODO: try to not use unpacking.
         x, y = self.game_map.unscale_coords(pos)
         self.game_map.game_map[y][x].is_open = True
 
@@ -41,13 +44,13 @@ class GameLogic:
             new_x, new_y = x, y + 1
         max_vals = GameMap.get_map_shape()
         if 0 <= new_x < max_vals[0] and 0 <= new_y < max_vals[1]:
-            character.move((new_x, new_y))
+            character.move(Coords(new_x, new_y))
 
     def get_map_image(self):
         return self.game_map.map_to_img()
 
-    def display_players(self, painter):
-        return self.game_map.display_players(painter, self.players)
+    def display_players(self, painter: QPainter):
+        return self.game_map.display_players(painter, self.players, self._get_current_character())
 
     def next_player(self):
         self.cur_player = (self.cur_player + 1) % self.num_of_players

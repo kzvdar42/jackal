@@ -1,8 +1,13 @@
 import os
 import random
-
+from typing import List, Tuple
 import numpy as np
 from collections import defaultdict
+from collections.abc import Iterable
+from functools import partial
+import operator
+
+from Characters import Character
 
 from PIL import Image
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor
@@ -25,6 +30,79 @@ def resize_and_rotate_img(tile_img, tile_size, direction):
         res_img = res_img.rotate(direction)
 
     return res_img
+
+
+class Coords:
+    """Class for coords and math associated with them."""
+    def __init__(self, x, y):
+        self.coords = x, y
+    
+    def __perform_op(self, operation, other, inplace=False, from_right=False):
+        x, y = self.coords
+        if not isinstance(other, Iterable):
+            other = (other, other)
+        if from_right:
+            x, y, other = *other, (x, y)
+        # TODO: Better comment for the assert.
+        assert len(other) == 2, "Length should be two."
+        x = operation(x, other[0])
+        y = operation(y, other[1])
+        if inplace:
+            self.coords = x, y
+        return Coords(x, y)
+    
+    def get_coords(self):
+        return self.coords
+
+
+    def set_coords(self, x, y):
+        self.coords = x, y
+
+
+    def __getitem__(self, idx):
+        return self.coords[idx]
+
+
+    def __setitem__(self, idx, value):
+        self.coords[idx] = value
+
+
+    def __len__(self):
+        return 2
+
+
+    def __hash__(self):
+        return hash(self.coords)
+
+
+    def __eq__(self, other):
+        return self.coords == other.coords
+    
+
+    def __add__(self, other):
+        return self.__perform_op(operator.add, other)
+    __radd__ = __add__
+
+
+    def __mul__(self, other):
+        return self.__perform_op(operator.mul, other)
+    __rmul__ = __mul__
+
+
+    def __sub__(self, other):
+        return self.__perform_op(operator.sub, other)
+
+
+    def __rsub__(self, other):
+        return self.__perform_op(operator.sub, other, from_right=True)
+
+
+    def __floordiv__(self, other):
+        return self.__perform_op(operator.floordiv, other)
+
+
+    def __rfloordiv__(self, other):
+        return self.__perform_op(operator.floordiv, other, from_right=True)
 
 
 class Tile:
@@ -57,7 +135,7 @@ class GameMap:
     # Shape of the game map
     @staticmethod
     def get_map_shape():
-        return (13, 13)
+        return Coords(13, 13)
 
     # All game tiles in format {tile_type}:{amount}
     @staticmethod
@@ -127,10 +205,10 @@ class GameMap:
         map_shape = GameMap.get_map_shape()
         axis_centers = list(map(lambda x: np.floor(x / 2.0), map_shape))
         return {
-            0: (0, axis_centers[1]),
-            1: (axis_centers[0], map_shape[1] - 1),
-            2: (map_shape[0] - 1, axis_centers[1]),
-            3: (axis_centers[0], 0),
+            0: Coords(0, axis_centers[1]),
+            1: Coords(axis_centers[0], map_shape[1] - 1),
+            2: Coords(map_shape[0] - 1, axis_centers[1]),
+            3: Coords(axis_centers[0], 0),
         }[side]
 
     def __create_map(self):
@@ -165,23 +243,28 @@ class GameMap:
     def resize_and_rotate_img(self, tile_img, direction):
         return resize_and_rotate_img(tile_img, self.tile_size, direction)
 
+
     def get_tile_pixel_inds(self, coords):
         x, y = coords
-        return (slice(*self.scale_coords((x, x + 1))),
-                slice(*self.scale_coords((y, y + 1))))
+        return (slice(*self.scale_coords(Coords(x, x + 1))),
+                slice(*self.scale_coords(Coords(y, y + 1))))
+
 
     def scale_coords(self, coords):
-        x, y = coords
-        return (x * self.tile_size,
-                y * self.tile_size)
+        if not isinstance(coords, Coords):
+            coords = Coords(*coords)
+        return coords * self.tile_size
 
-    def unscale_coords(self, coords):
-        x, y = coords
-        return (x // self.tile_size,
-                y // self.tile_size)
+
+    def unscale_coords(self, coords: Coords):
+        if not isinstance(coords, Coords):
+            coords = Coords(*coords)
+        return coords // self.tile_size
+
 
     def map_to_img(self):
         """Create a full image of a map."""
+        print(self.scale_coords(self.game_map.shape))
         map_img = np.zeros(
             (*self.scale_coords(self.game_map.shape), 3), dtype=np.uint8)
         closed_tile_img = Image.open(os.path.join(
@@ -201,25 +284,33 @@ class GameMap:
             map_img[self.get_tile_pixel_inds(coords)] = tile_img
         return Image.fromarray(map_img)
 
-    def display_players(self, painter: QPainter, players):
+    def display_players(self, painter: QPainter,
+                        players: List[Character], cur_character: Character):
 
-        def get_character_color(character):
+        def get_character_color(color):
             if character.ch_type == 'pirate':
-                return QColor(*color_to_rgb(player.color))
+                return QColor(*color_to_rgb(color))
             else:
                 raise NotImplemented('The color for non pirate characters is not yet defined.')
 
-        # TODO: Find a better way to understand if players are on the same tile
+        # TODO: Find a better way to understand if players are on the same tile.
+        # Extract positions.
         positions = defaultdict(list)
         for player in players:
             for character in player.characters:
-                positions[character.coords].append(get_character_color(character))
-        for pos, char_colors in positions.items():
-            for i, ch_color in enumerate(char_colors):
-                painter.setBrush(QBrush(ch_color, Qt.SolidPattern))
-                ellipse_size = self.tile_size / len(char_colors)
-                painter.drawEllipse(*map(lambda x: x + i * ellipse_size, self.scale_coords(pos)),
+                positions[character.coords].append((character, player.color))
+        # Display the characters at each position.
+        for pos, characters in positions.items():
+            for i, (character, ch_color) in enumerate(characters):
+                painter.setBrush(QBrush(get_character_color(ch_color), Qt.SolidPattern))
+                ellipse_size = self.tile_size / len(characters)
+                painter.drawEllipse(*(i * ellipse_size + self.scale_coords(pos)),
                                     ellipse_size, ellipse_size)
+                # Display the glow outside the current player.
+                if character is cur_character:
+                    painter.setBrush(QBrush(QColor(*color_to_rgb('green')), Qt.SolidPattern))
+                    painter.drawEllipse(*(self.scale_coords(pos) + (i + 1 / 4) * ellipse_size),
+                                        ellipse_size / 2, ellipse_size / 2)
 
 
 # @staticmethod
@@ -229,4 +320,5 @@ def color_to_rgb(game_color):
         'white': (255, 255, 255),
         'black': (35, 31, 32),
         'yellow': (255, 221, 23),
+        'green': (127,255,0),
     }[game_color]

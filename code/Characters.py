@@ -1,10 +1,13 @@
+# from GameMap import Coords
+
 class Character:
     """Game character.
     Possible `ch_types` are: `pirate`.
     """
 
-    def __init__(self, coords, ch_type):
+    def __init__(self, coords, ch_type: str):
         self.coords = coords
+        print(coords)
         self.ch_type = ch_type
 
     def move(self, coords):
