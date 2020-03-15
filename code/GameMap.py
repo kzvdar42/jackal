@@ -168,8 +168,9 @@ class GameMap:
         self.game_map = self.__create_map()
 
     @staticmethod
-    def __is_in_water(x, y):
+    def __is_in_water(coords):
         """Check if this coordinates are in water."""
+        x, y = coords
         return (
             x == 0 or y == 0 or
             x == 12 or y == 12 or
@@ -213,7 +214,7 @@ class GameMap:
         for x in range(map_shape[0]):
             for y in range(map_shape[1]):
                 # Check if this is a water tile1
-                if self.__is_in_water(x, y):
+                if self.__is_in_water((x, y)):
                     tile_type = 'water'
                 else:
                     tile_type = np.random.choice(
@@ -252,7 +253,6 @@ class GameMap:
 
     def map_to_img(self):
         """Create a full image of a map."""
-        print(self.scale_coords(self.game_map.shape))
         map_img = np.zeros(
             (*self.scale_coords(self.game_map.shape), 3), dtype=np.uint8)
         closed_tile_img = Image.open(os.path.join(
@@ -299,6 +299,15 @@ class GameMap:
                     painter.setBrush(QBrush(QColor(*color_to_rgb('green')), Qt.SolidPattern))
                     painter.drawEllipse(*(self.scale_coords(pos) + (i + 1 / 4) * ellipse_size),
                                         ellipse_size / 2, ellipse_size / 2)
+    
+
+    def display_possible_turns(self, painter: QPainter,
+                               poss_turns: List[Coords]):
+        for coord in poss_turns:
+            painter.setBrush(QBrush(QColor(*color_to_rgb('green')), Qt.SolidPattern))
+            ellipse_size = self.tile_size / 2
+            painter.drawEllipse(*(self.scale_coords(coord)) + ellipse_size / 2,
+                                ellipse_size, ellipse_size)
 
 
 # @staticmethod

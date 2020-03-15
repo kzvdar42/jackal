@@ -58,6 +58,8 @@ class App(QWidget):
         painter = QPainter(self)
         # Draw the game map.
         painter.drawPixmap(0, 0, self.pixmap)
+        # Draw possible turns.
+        self.game_logic.display_possible_turns(painter)
         # Draw the players.
         self.game_logic.display_players(painter)
 
@@ -74,8 +76,10 @@ class App(QWidget):
 
     def timerEvent(self, e):
         if self.key_press in self.__key_to_direction:
-            self.game_logic.move_character(
-                self.__key_to_direction[self.key_press])
+            is_field_changed = self.game_logic.move_character(self.__key_to_direction[self.key_press])
+            # If field is changed, update the game map image.
+            if is_field_changed:
+                self.update()
         elif self.key_press == Qt.Key_Return:
             self.game_logic.next_player()
         self.key_press = ''

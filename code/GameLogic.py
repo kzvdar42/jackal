@@ -24,33 +24,67 @@ class GameLogic:
             self.players.append(Player(colors[i], start_coords, side=i))
 
     def mouse_click(self, pos):
-        # TODO: try to not use unpacking.
-        x, y = self.game_map.unscale_coords(pos)
-        self.game_map.game_map[y][x].is_open = True
+        mouse_coords = self.game_map.unscale_coords(pos)
+        self._move_character(mouse_coords)
 
     def _get_current_character(self):
         return self.players[self.cur_player].characters[self.cur_character]
 
-    def move_character(self, direction):
-        character = self._get_current_character()
-        x, y = character.coords
-        if direction == 'right':
-            new_x, new_y = x + 1, y
-        elif direction == 'left':
-            new_x, new_y = x - 1, y
-        elif direction == 'up':
-            new_x, new_y = x, y - 1
-        elif direction == 'down':
-            new_x, new_y = x, y + 1
+    def _move_character(self, coords):
+        """Move the current character to the given coords.
+
+        :param coords: coords to move to
+        :return: True if some field is opened, False otherwise
+        """
+        # Move if inside the bounds.
         max_vals = GameMap.get_map_shape()
-        if 0 <= new_x < max_vals[0] and 0 <= new_y < max_vals[1]:
-            character.move(Coords(new_x, new_y))
+        pos_turns = self._get_possible_turns()
+        if (0 <= coords[0] < max_vals[0] and
+            0 <= coords[1] < max_vals[1] and
+                coords in pos_turns):
+            self._get_current_character().move(coords)
+            if not self.game_map.game_map[coords[1]][coords[0]].is_open:
+                # Open corresponding tile. And return true to update the map.
+                self.game_map.game_map[coords[1]][coords[0]].is_open = True
+                return True
+        return False
+
+    def move_character(self, direction):
+        """Move the current character ingiven direction.
+
+        :param direction: one of ('right', 'left', 'up', 'down')
+        :return: True if some field is opened, False otherwise
+        """
+        coords = self._get_current_character().coords
+        if direction == 'right':
+            coords += (1, 0)
+        elif direction == 'left':
+            coords += (-1, 0)
+        elif direction == 'up':
+            coords += (0, -1)
+        elif direction == 'down':
+            coords += (0, 1)
+        return self._move_character(coords)
+
+    def _get_possible_turns(self):
+        """Get possible turns for current character.
+        """
+        coords = self._get_current_character().coords
+        pos_turns = [coords + (x, y)
+                     for x in range(-1, 2)
+                     for y in range(-1, 2)]
+        pos_turns.remove(coords)
+        return pos_turns
 
     def get_map_image(self):
         return self.game_map.map_to_img()
 
     def display_players(self, painter: QPainter):
         return self.game_map.display_players(painter, self.players, self._get_current_character())
+
+    def display_possible_turns(self, painter: QPainter):
+        pos_turns = self._get_possible_turns()
+        return self.game_map.display_possible_turns(painter, pos_turns)
 
     def next_player(self):
         self.cur_player = (self.cur_player + 1) % self.num_of_players

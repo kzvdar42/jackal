@@ -8,7 +8,6 @@ class Character:
 
     def __init__(self, coords, ch_type: str):
         self.coords = coords
-        print(coords)
         self.ch_type = ch_type
 
     def move(self, coords):
