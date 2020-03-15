@@ -195,7 +195,7 @@ class GameMap:
         :return: tuple of coordinates (x, y)
         """
         map_shape = GameMap.get_map_shape()
-        axis_centers = list(map(lambda x: np.floor(x / 2.0), map_shape))
+        axis_centers = list(map(lambda x: int(np.floor(x / 2.0)), map_shape))
         return {
             0: Coords(0, axis_centers[1]),
             1: Coords(axis_centers[0], map_shape[1] - 1),
