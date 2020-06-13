@@ -8,6 +8,7 @@ from functools import partial
 import operator
 
 from Characters import Character
+from TileBehaviour import get_tile_behavior
 
 from PIL import Image
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor
@@ -74,7 +75,10 @@ class Coords:
         return hash(self.coords)
 
     def __eq__(self, other):
-        return self.coords == other.coords
+        if type(other) is type(self):
+            return self.coords == other.coords
+        else:
+            return self.coords[0] == other[0] and self.coords[1] == other[1]
 
     def __add__(self, other):
         return self.__perform_op(operator.add, other)
@@ -114,12 +118,10 @@ class Tile:
         self.direction = direction
         self.is_open = False
         self.objects = []
+        self.can_step = get_tile_behavior(tile_type)
 
     def open(self):
         self.is_open = True
-        pass
-
-    def step(self, pirate, direction):
         pass
 
 

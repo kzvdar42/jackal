@@ -1,5 +1,6 @@
 from GameMap import GameMap, Coords
 from Characters import Player
+from TileTurns import get_possible_turns
 
 from PyQt5.QtGui import QPainter
 
@@ -27,8 +28,11 @@ class GameLogic:
         mouse_coords = self.game_map.unscale_coords(pos)
         self._move_character(mouse_coords)
 
+    def _get_current_player(self):
+        return self.players[self.cur_player]
+
     def _get_current_character(self):
-        return self.players[self.cur_player].characters[self.cur_character]
+        return self._get_current_player().characters[self.cur_character]
 
     def _move_character(self, coords):
         """Move the current character to the given coords.
@@ -69,11 +73,21 @@ class GameLogic:
     def _get_possible_turns(self):
         """Get possible turns for current character.
         """
-        coords = self._get_current_character().coords
-        pos_turns = [coords + (x, y)
-                     for x in range(-1, 2)
-                     for y in range(-1, 2)]
-        pos_turns.remove(coords)
+        cur_char = self._get_current_character()
+        cur_player = self._get_current_player()
+
+        # If on the ship, can move only forward.
+        # TODO: Handle ship movement.
+        if cur_char.coords == cur_player.ship_coords:
+            return [cur_char.coords + {
+                        0: (1, 0),
+                        1: (0, -1),
+                        2: (-1, 0),
+                        3: (0, 1)
+                    }[cur_player.side]]
+        x, y = cur_char.coords
+        tile_type = self.game_map.game_map[y][x].tile_type
+        pos_turns = get_possible_turns(tile_type, self.game_map.game_map, cur_player, cur_char)
         return pos_turns
 
     def get_map_image(self):
