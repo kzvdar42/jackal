@@ -43,7 +43,6 @@ def __dir_0_180_turns(game_map, cur_player, cur_char):
     pos_turns = []
     for angle in (0, 180):
         direction = (game_map[y][x].direction + angle) % 360
-        print(direction)
         pos_turns.append(straight_offset(cur_char.coords, direction))
     return pos_turns
 
