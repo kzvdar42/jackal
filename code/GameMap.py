@@ -12,7 +12,7 @@ from TileBehaviour import get_tile_behavior
 
 from PIL import Image
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QRect
 
 
 def resize_and_rotate_img(tile_img, tile_size, direction):
@@ -294,30 +294,35 @@ class GameMap:
             for i, (character, ch_color) in enumerate(characters):
                 painter.setBrush(QBrush(get_character_color(ch_color), Qt.SolidPattern))
                 ellipse_size = self.tile_size / len(characters)
-                painter.drawEllipse(*(i * ellipse_size + self.scale_coords(pos)),
+                rect = QRect(*(i * ellipse_size + self.scale_coords(pos)),
                                     ellipse_size, ellipse_size)
+                painter.drawEllipse(rect)
                 # Display the glow outside the current player.
                 if character is cur_character:
-                    painter.setBrush(QBrush(QColor(*color_to_rgb('green')), Qt.SolidPattern))
-                    painter.drawEllipse(*(self.scale_coords(pos) + (i + 1 / 4) * ellipse_size),
-                                        ellipse_size / 2, ellipse_size / 2)
+                    painter.setBrush(Qt.NoBrush)
+                    painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
+                    painter.drawEllipse(*(self.scale_coords(pos) + i * ellipse_size),
+                                        ellipse_size, ellipse_size)
+                    painter.setPen(Qt.NoPen)
     
 
     def display_possible_turns(self, painter: QPainter,
                                poss_turns: List[Coords]):
         for coord in poss_turns:
-            painter.setBrush(QBrush(QColor(*color_to_rgb('green')), Qt.SolidPattern))
-            ellipse_size = self.tile_size / 2
-            painter.drawEllipse(*(self.scale_coords(coord)) + ellipse_size / 2,
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
+            ellipse_size = self.tile_size
+            painter.drawRect(*(self.scale_coords(coord)),
                                 ellipse_size, ellipse_size)
+            painter.setPen(Qt.NoPen)
 
 
 # @staticmethod
 def color_to_rgb(game_color):
     return {
-        'red': (238, 29, 35),
-        'white': (255, 255, 255),
-        'black': (35, 31, 32),
-        'yellow': (255, 221, 23),
-        'green': (127, 255, 0),
+        'red': (238, 29, 35, 170),
+        'white': (255, 255, 255, 170),
+        'black': (35, 31, 32, 170),
+        'yellow': (255, 221, 23, 170),
+        'green': (127, 255, 0, 170),
     }[game_color]
