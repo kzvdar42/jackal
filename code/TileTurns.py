@@ -35,52 +35,50 @@ def diagonal_offset(coords, direction):
     }[direction]
 
 def __dir_straight_turns(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
-    return [straight_offset(cur_char.coords, game_map[y][x].direction)]
+    ch_coords = cur_char.coords
+    return [straight_offset(ch_coords, game_map[ch_coords].direction)]
 
 def __dir_0_180_turns(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
+    ch_coords = cur_char.coords
     pos_turns = []
     for angle in (0, 180):
-        direction = (game_map[y][x].direction + angle) % 360
-        pos_turns.append(straight_offset(cur_char.coords, direction))
+        direction = (game_map[ch_coords].direction + angle) % 360
+        pos_turns.append(straight_offset(ch_coords, direction))
     return pos_turns
 
 def __dir_uplr_turns(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
     pos_turns = []
     for direction in (0, 90, 180, 270):
         pos_turns.append(straight_offset(cur_char.coords, direction))
     return pos_turns
 
 def __dir_45_turns(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
-    return [diagonal_offset(cur_char.coords, game_map[y][x].direction)]
+    ch_coords = cur_char.coords
+    return [diagonal_offset(ch_coords, game_map[ch_coords].direction)]
 
 def __dir_45_225_turns(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
+    ch_coords = cur_char.coords
     pos_turns = []
     for angle in (0, 180):
-        direction = (game_map[y][x].direction + angle) % 360
-        pos_turns.append(diagonal_offset(cur_char.coords, direction))
+        direction = (game_map[ch_coords].direction + angle) % 360
+        pos_turns.append(diagonal_offset(ch_coords, direction))
     return pos_turns
 
 def __dir_diagonal_turns(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
     pos_turns = []
     for direction in (0, 90, 180, 270):
         pos_turns.append(diagonal_offset(cur_char.coords, direction))
     return pos_turns
 
 def __dir_0_135_270_turn(game_map, cur_player, cur_char):
-    x, y = cur_char.coords
+    ch_coords = cur_char.coords
     pos_turns = []
-    direction = game_map[y][x].direction
-    pos_turns.append(straight_offset(cur_char.coords, direction))
+    direction = game_map[ch_coords].direction
+    pos_turns.append(straight_offset(ch_coords, direction))
     direction = (direction + 90) % 360
-    pos_turns.append(straight_offset(cur_char.coords, direction))
+    pos_turns.append(straight_offset(ch_coords, direction))
     direction = (direction + 180) % 360
-    pos_turns.append(diagonal_offset(cur_char.coords, direction))
+    pos_turns.append(diagonal_offset(ch_coords, direction))
     return pos_turns
 
 __tile_type_to_turns = {
@@ -100,6 +98,5 @@ def get_possible_turns(tile_type, game_map, cur_player, cur_char):
     tile_type_to_turns.update(__tile_type_to_turns)
 
     pos_turns = tile_type_to_turns[tile_type](game_map, cur_player, cur_char)
-    pos_turns = [coord for coord in pos_turns if game_map[coord[1]][coord[0]].can_step(game_map, cur_player, cur_char, coord)]
-
+    pos_turns = [coord for coord in pos_turns if game_map[coord].can_step(game_map, cur_player, cur_char, coord)]
     return pos_turns

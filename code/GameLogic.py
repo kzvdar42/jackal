@@ -47,9 +47,9 @@ class GameLogic:
             0 <= coords[1] < max_vals[1] and
                 coords in pos_turns):
             self._get_current_character().move(coords)
-            if not self.game_map.game_map[coords[1]][coords[0]].is_open:
+            if not self.game_map[coords].is_open:
                 # Open corresponding tile. And return true to update the map.
-                self.game_map.game_map[coords[1]][coords[0]].is_open = True
+                self.game_map[coords].is_open = True
                 return True
         return False
 
@@ -73,21 +73,21 @@ class GameLogic:
     def _get_possible_turns(self):
         """Get possible turns for current character.
         """
-        cur_char = self._get_current_character()
         cur_player = self._get_current_player()
+        cur_char = self._get_current_character()
+        ch_coords = cur_char.coords
 
         # If on the ship, can move only forward.
         # TODO: Handle ship movement.
-        if cur_char.coords == cur_player.ship_coords:
-            return [cur_char.coords + {
+        if ch_coords == cur_player.ship_coords:
+            return [ch_coords + {
                         0: (1, 0),
                         1: (0, -1),
                         2: (-1, 0),
                         3: (0, 1)
                     }[cur_player.side]]
-        x, y = cur_char.coords
-        tile_type = self.game_map.game_map[y][x].tile_type
-        pos_turns = get_possible_turns(tile_type, self.game_map.game_map, cur_player, cur_char)
+        tile_type = self.game_map[ch_coords].tile_type
+        pos_turns = get_possible_turns(tile_type, self.game_map, cur_player, cur_char)
         return pos_turns
 
     def get_map_image(self):

@@ -205,6 +205,13 @@ class GameMap:
             2: Coords(map_shape[0] - 1, axis_centers[1]),
             3: Coords(axis_centers[0], 0),
         }[side]
+    
+    def __getitem__(self, idx):
+        if isinstance(idx, Coords):
+            x, y = idx
+            return self.game_map[y][x]
+        else:
+            return self.game_map[idx]
 
     def __create_map(self):
         """Create a random game map.

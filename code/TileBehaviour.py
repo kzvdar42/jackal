@@ -5,14 +5,12 @@ def __empty(game_map, cur_player, cur_char, coords):
     return True
 
 def __water(game_map, cur_player, cur_char, coords):
-    x, y = cur_char.coords
-    if cur_player.ship_coords == coords:
-        return True
-    elif 'dir' in game_map[y][x].tile_type:
-        return True
-    elif game_map[y][x].tile_type == 'water':
-        return True
-    return False
+    ch_coords = cur_char.coords
+    return (
+        cur_player.ship_coords == coords or
+        'dir' in game_map[ch_coords].tile_type or
+        game_map[ch_coords].tile_type == 'water'
+    )
 
 __tile_type_to_behavior = {
     'empty': __empty,
