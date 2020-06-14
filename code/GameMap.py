@@ -105,17 +105,30 @@ class Tile:
             180,  # ↓
             270,  # <-
         ]
+    
+    @staticmethod
+    def get_max_spin(tile_type):
+        return {
+            'spinning_2': 2,
+            'spinning_3': 3,
+            'spinning_4': 4,
+            'spinning_5': 5,
+        }[tile_type]
 
     def __init__(self, tile_type, direction):
         self.tile_type = tile_type
         self.direction = direction
         self.is_open = False
+        self.active = True
         self.objects = []
         self.can_step = get_tile_behavior(tile_type)
 
     def open(self):
         self.is_open = True
         pass
+    
+    def __repr__(self):
+        return f'<Tile: {self.tile_type}>'
 
 
 class GameMap:
@@ -273,23 +286,20 @@ class GameMap:
         return coords // self.tile_size
 
     def display_map(self, painter: QPainter):
-        for x in range(0, 13):
-            for y in range(0, 13):
-                coords = (x, y)
-                tile = self.game_map[y][x]
-        # for coords, tile in np.ndenumerate(self.game_map):
-                # TODO: Add 'water' tile image.
-                if tile.tile_type == 'water':
-                    continue
-                if tile.is_open:
-                    tile_img = self.tile_images[tile.tile_type]
-                else:
-                    tile_img = self.tile_images['back']
-                # Move to the center of tile, rotate, move back
-                painter.translate(*self.scale_coords(coords + Coords(0.5, 0.5)))
-                painter.rotate(tile.direction)
-                painter.drawImage(*self.scale_coords((-0.5, -0.5)), tile_img)
-                painter.resetTransform()
+        for coords, tile in np.ndenumerate(self.game_map):
+            coords = Coords(*reversed(coords))
+            # TODO: Add 'water' tile image.
+            if tile.tile_type == 'water':
+                continue
+            if tile.is_open:
+                tile_img = self.tile_images[tile.tile_type]
+            else:
+                tile_img = self.tile_images['back']
+            # Move to the center of tile, rotate, move back
+            painter.translate(*self.scale_coords(coords + (0.5, 0.5)))
+            painter.rotate(tile.direction)
+            painter.drawImage(*self.scale_coords((-0.5, -0.5)), tile_img)
+            painter.resetTransform()
 
     def display_players(self, painter: QPainter,
                         players: List[Character], cur_character: Character):
@@ -318,9 +328,15 @@ class GameMap:
                 ellipse_size = self.tile_size / len(characters)
                 painter.save()
                 painter.setBrush(QBrush(get_character_color(ch_color), Qt.SolidPattern))
-                rect = QRect(*(self.scale_coords(pos) + i * ellipse_size),
-                             ellipse_size, ellipse_size)
+                rect_pos = self.scale_coords(pos) + i * ellipse_size
+                rect = QRect(*rect_pos, ellipse_size, ellipse_size)
                 painter.drawEllipse(rect)
+                # Display counter if character is on spinning tile.
+                if 'spinning' in self[pos].tile_type:
+                    painter.setPen(QPen(QColor('black'), 3))
+                    text = str(character.spinning_counter)
+                    text_br = painter.boundingRect(rect, Qt.AlignCenter, text)
+                    painter.drawText(text_br, 1, text)
                 # Display the glow outside the current player.
                 if character is cur_character:
                     painter.setBrush(Qt.NoBrush)

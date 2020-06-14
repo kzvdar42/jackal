@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-
 def default_behavior(game_map, cur_player, cur_char, coords):
     return True
 
@@ -11,7 +10,7 @@ def __water(game_map, cur_player, cur_char, coords):
     return (
         cur_player.ship_coords == coords or
         'dir' in cur_tile_type or
-        cur_tile_type in ['water', 'cannon', 'horses', 'ice_lake']
+        cur_tile_type in ['water', 'cannon', 'horses', 'ice_lake', 'plane']
     )
 
 

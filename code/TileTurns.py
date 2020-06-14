@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from GameMap import Tile
+
 
 def default_turns(game_map, cur_player, cur_char):
     pos_turns = []
@@ -96,9 +98,9 @@ def __baloon_turn(game_map, cur_player, cur_char):
 
 
 def __plane_turn(game_map, cur_player, cur_char):
+    if not game_map[cur_char.coords].active:
+        return default_turns(game_map, cur_player, cur_char)
     pos_turns = []
-    # TODO: Make this behavior one time only.
-    # TODO: Add all tiles, not only the ones which `can_step` returns True.
     for x in range(0, 13):
         for y in range(0, 13):
             pos_turns.append((x, y))
@@ -135,6 +137,17 @@ def __horses_turns(game_map, cur_player, cur_char):
     return pos_turns
 
 
+def __spinning(game_map, cur_player, cur_char):
+    cur_coords = cur_char.coords
+    max_spin = Tile.get_max_spin(game_map[cur_coords].tile_type)
+    
+    if cur_char.spinning_counter >= max_spin:
+        return default_turns(game_map, cur_player, cur_char)
+    elif cur_char.spinning_counter < 1:
+        cur_char.spinning_counter = 1
+    return [cur_coords]
+
+
 __tile_type_to_turns = {
     'water': __water_turns,
     'dir_straight': __dir_straight_turns,
@@ -150,6 +163,10 @@ __tile_type_to_turns = {
     'crocodile': __crocodile_turns,
     'ice_lake': __ice_lake_turns,
     'horses': __horses_turns,
+    'spinning_2': __spinning,
+    'spinning_3': __spinning,
+    'spinning_4': __spinning,
+    'spinning_5': __spinning,
 }
 
 

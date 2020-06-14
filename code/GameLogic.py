@@ -1,6 +1,7 @@
 from GameMap import GameMap, Coords
 from Characters import Player
 from TileTurns import get_possible_turns
+from TileStep import finish_step
 
 from PyQt5.QtGui import QPainter
 
@@ -46,14 +47,14 @@ class GameLogic:
         :return: True if some field is opened, False otherwise
         """
         # Move if inside the bounds.
-        max_vals = GameMap.get_map_shape()
         pos_turns = self._get_possible_turns()
-        if (0 <= coords[0] < max_vals[0] and
-            0 <= coords[1] < max_vals[1] and
-                coords in pos_turns):
+        if (self.game_map.is_in_bounds(coords) and coords in pos_turns):
+            cur_player = self._get_current_player()
+            cur_char = self._get_current_character()
+            finish_step(self.game_map, cur_player, cur_char)
             self._get_current_character().move(coords)
+            # Open corresponding tile. And return true to update the map.
             if not self.game_map[coords].is_open:
-                # Open corresponding tile. And return true to update the map.
                 self.game_map[coords].is_open = True
                 return True
         return False
