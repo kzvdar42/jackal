@@ -63,7 +63,9 @@ class Coords:
         return self.coords[idx]
 
     def __setitem__(self, idx, value):
-        self.coords[idx] = value
+        new_coords = list(self.coords)
+        new_coords[idx] = value
+        self.coords = tuple(new_coords)
 
     def __len__(self):
         return 2
