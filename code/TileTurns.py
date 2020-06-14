@@ -14,23 +14,23 @@ def default_turns(game_map, cur_player, cur_char):
 
 def __water_turns(game_map, cur_player, cur_char):
     pos_turns = default_turns(game_map, cur_player, cur_char)
-    pos_turns = [(x, y) for (x, y) in pos_turns if game_map[y][x].tile_type == 'water']
+    pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord) and game_map[coord].tile_type == 'water']
     return pos_turns
 
 def straight_offset(coords, direction):
     return coords + {
         0: (0, -1),
-        90: (-1, 0),
+        90: (1, 0),
         180: (0, 1),
-        270: (1, 0)
+        270: (-1, 0),
     }[direction]
 
 def diagonal_offset(coords, direction):
     return coords + {
         0: (1, -1),
-        90: (-1, -1),
+        90: (1, 1),
         180: (-1, 1),
-        270: (1, 1),
+        270: (-1, -1),
     }[direction]
 
 def __dir_straight_turns(game_map, cur_player, cur_char):
@@ -75,9 +75,9 @@ def __dir_0_135_270_turn(game_map, cur_player, cur_char):
     direction = game_map[ch_coords].direction
     pos_turns.append(straight_offset(ch_coords, direction))
     direction = (direction + 90) % 360
-    pos_turns.append(straight_offset(ch_coords, direction))
-    direction = (direction + 180) % 360
     pos_turns.append(diagonal_offset(ch_coords, direction))
+    direction = (direction + 180) % 360
+    pos_turns.append(straight_offset(ch_coords, direction))
     return pos_turns
 
 def __baloon_turn(game_map, cur_player, cur_char):
@@ -100,9 +100,9 @@ def __cannon_turn(game_map, cur_player, cur_char):
     elif direction == 180:
         cur_coords[1] = 12
     elif direction == 90:
-        cur_coords[0] = 0
-    elif direction == 270:
         cur_coords[0] = 12
+    elif direction == 270:
+        cur_coords[0] = 0
     return [cur_coords]
 
 def __crocodile_turns(game_map, cur_player, cur_char):
@@ -140,7 +140,7 @@ def get_possible_turns(tile_type, game_map, cur_player, cur_char):
 
     pos_turns = tile_type_to_turns[tile_type](game_map, cur_player, cur_char)
     # Accept turn only if it in map bounds.
-    pos_turns = [coord for coord in pos_turns if coord[0] > -1 and coord[0] < 13 and coord[1] > -1 and coord[1] < 13]
+    pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord)]
     # Accept turn only if you can step on this tile right now.
     pos_turns = [coord for coord in pos_turns if game_map[coord].can_step(game_map, cur_player, cur_char, coord)]
     return pos_turns

@@ -90,8 +90,11 @@ class GameLogic:
         pos_turns = get_possible_turns(tile_type, self.game_map, cur_player, cur_char)
         return pos_turns
 
-    def get_map_image(self):
-        return self.game_map.map_to_img()
+    def display_map(self, painter: QPainter):
+        return self.game_map.display_map(painter)
+    
+    def get_map_shape(self):
+        return self.game_map.scale_coords(self.game_map.get_map_shape())
 
     def display_players(self, painter: QPainter):
         return self.game_map.display_players(painter, self.players, self._get_current_character())

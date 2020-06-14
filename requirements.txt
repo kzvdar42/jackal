@@ -1,2 +1,2 @@
 numpy
-Pillow==6.2.1
+PyQt5

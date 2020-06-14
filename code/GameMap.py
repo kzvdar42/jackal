@@ -10,7 +10,6 @@ import operator
 from Characters import Character
 from TileBehaviour import get_tile_behavior
 
-from PIL import Image
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor, QImage
 from PyQt5.QtCore import Qt, QRect
 
@@ -97,6 +96,9 @@ class Coords(Iterable):
         return self.__perform_op(operator.mul, other)
     __rmul__ = __mul__
 
+    def __neg__(self):
+        return Coords(-self.coords[0], -self.coords[1])
+
     def __sub__(self, other):
         return self.__perform_op(operator.sub, other)
 
@@ -116,10 +118,10 @@ class Tile:
     def get_tile_dirs():
         """Tile direction format."""
         return [  # TODO: change to a more readable format ('left', 'right', etc.)
-            0,  # ->
-            90,  # ↑
-            180,  # <-
-            270,  # ↓
+            0,  # ↑
+            90,  # ->
+            180,  # ↓
+            270,  # <-
         ]
 
     def __init__(self, tile_type, direction):
@@ -139,6 +141,13 @@ class GameMap:
     @staticmethod
     def get_map_shape():
         return Coords(13, 13)
+    
+    @staticmethod
+    def is_in_bounds(coord: Coords) -> bool:
+        for ax_val in coord:
+            if ax_val < 0 or ax_val > 12:
+                return False
+        return True
 
     # All game tiles in format {tile_type}:{amount}
     @staticmethod
@@ -177,7 +186,21 @@ class GameMap:
     def __init__(self, tile_size):
         self.tile_size = tile_size
         self.game_map = self.__create_map()
-
+        self.tile_images = self.load_tile_images('tile_images', self.tile_size)
+    
+    @staticmethod
+    def load_tile_images(path, tile_size):
+        """Load tile images from the given path and scale to the tile_size.
+        """
+        tile_images = {}
+        tile_types = set(GameMap.__get_all_tiles())
+        tile_types.update(['back', 'boat_black', 'boat_red', 'boat_white', 'boat_yellow'])
+        for tile_type in tile_types:
+            tile_image = QImage(os.path.join(path, f'{tile_type}.png'))
+            tile_image = tile_image.scaled(tile_size, tile_size)
+            tile_images[tile_type] = tile_image
+        return tile_images
+    
     @staticmethod
     def __is_in_water(coords):
         """Check if this coordinates are in water."""
@@ -268,27 +291,25 @@ class GameMap:
         if not isinstance(coords, Coords):
             coords = Coords(*coords)
         return coords // self.tile_size
-
-    def map_to_img(self):
-        """Create a full image of a map."""
-        map_img = np.zeros(
-            (*self.scale_coords(self.game_map.shape), 3), dtype=np.uint8)
-        closed_tile_img = Image.open(os.path.join(
-            'tile_images', 'back.png'))
-        for coords, tile in np.ndenumerate(self.game_map):
-            if tile.tile_type == 'water':
+    
+    def display_map(self, painter: QPainter):
+        for x in range(0, 13):
+            for y in range(0, 13):
+                coords = (x, y)
+                tile = self.game_map[y][x]
+        # for coords, tile in np.ndenumerate(self.game_map):
                 # TODO: Add 'water' tile image.
-                tile_img = np.zeros((self.tile_size, self.tile_size, 3))
-            else:
-                if not tile.is_open:
-                    tile_img = closed_tile_img
+                if tile.tile_type == 'water':
+                    continue
+                if tile.is_open:
+                    tile_img = self.tile_images[tile.tile_type]
                 else:
-                    tile_img = Image.open(os.path.join(
-                        'tile_images', tile.tile_type + '.png'))
-                tile_img = resize_and_rotate_img(
-                    tile_img, self.tile_size, tile.direction)
-            map_img[self.get_tile_pixel_inds(coords)] = tile_img
-        return Image.fromarray(map_img)
+                    tile_img = self.tile_images['back']
+                # Move to the center of tile, rotate, move back
+                painter.translate(*self.scale_coords(coords + Coords(0.5, 0.5)))
+                painter.rotate(tile.direction)
+                painter.drawImage(*self.scale_coords((-0.5, -0.5)), tile_img)
+                painter.resetTransform()
 
     def display_players(self, painter: QPainter,
                         players: List[Character], cur_character: Character):
@@ -314,17 +335,16 @@ class GameMap:
         # Display the characters at each position.
         for pos, characters in positions.items():
             for i, (character, ch_color) in enumerate(characters):
-                painter.setBrush(QBrush(get_character_color(ch_color), Qt.SolidPattern))
                 ellipse_size = self.tile_size / len(characters)
-                rect = QRect(*(i * ellipse_size + self.scale_coords(pos)),
-                                    ellipse_size, ellipse_size)
+                painter.setBrush(QBrush(get_character_color(ch_color), Qt.SolidPattern))
+                rect = QRect(*(self.scale_coords(pos) + i * ellipse_size),
+                             ellipse_size, ellipse_size)
                 painter.drawEllipse(rect)
                 # Display the glow outside the current player.
                 if character is cur_character:
                     painter.setBrush(Qt.NoBrush)
                     painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
-                    painter.drawEllipse(*(self.scale_coords(pos) + i * ellipse_size),
-                                        ellipse_size, ellipse_size)
+                    painter.drawEllipse(rect)
                     painter.setPen(Qt.NoPen)
     
 
