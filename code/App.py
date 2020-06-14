@@ -26,7 +26,8 @@ class App(QWidget):
     def __init__(self, num_of_players):
         # Init widget.
         super().__init__()
-        self.game_logic = GameLogic(num_of_players)
+        self.game_logic = GameLogic(num_of_players, tile_size=128)
+        self.map_shape = self.game_logic.get_map_shape()
         self.key_press = ''
 
         # Init Qt timer.
@@ -37,25 +38,30 @@ class App(QWidget):
 
     def UI(self):
         self.setWindowTitle('Jackal')
+        self.setStyleSheet("background-color: rgb(3,102,196)")
         self.update()
 
         # Resize the widget to fit the game map.
-        # self.setFixedSize(pixmap.width(), pixmap.height())
-        self.resize(self.pixmap.width(), self.pixmap.height())
-        self.show()
-
-    def update(self):
-        # Draw the game map.
-        game_map_img = ImageQt(self.game_logic.get_map_image())
-        self.pixmap = QPixmap.fromImage(game_map_img).copy()
+        self.setFixedSize(*self.map_shape)
+        self.resize(*self.map_shape)
         self.show()
 
     def start(self):
         self.time.start(20, self)
         self.repaint()
+    
+    def update(self):
+        # Force the redrawing of the map on state update.
+        self.pixmap = None
 
     def paintEvent(self, e):
         painter = QPainter(self)
+        # Redraw the game map if needed.
+        if self.pixmap is None:
+            self.pixmap = QPixmap(*self.map_shape)
+            self.pixmap.fill(QColor('transparent'))
+            pixmap_painter = QPainter(self.pixmap)
+            self.game_logic.display_map(pixmap_painter)
         # Draw the game map.
         painter.drawPixmap(0, 0, self.pixmap)
         # Draw possible turns.
@@ -71,22 +77,25 @@ class App(QWidget):
             self.key_press = pressed
 
     def mousePressEvent(self, event):
-        self.game_logic.mouse_click((event.x(), event.y()))
-        self.update()
+        # If field is changed, update the game map image.
+        if self.game_logic.mouse_click((event.x(), event.y())):
+            self.update()
+        self.repaint()
 
     def timerEvent(self, e):
         if self.key_press in self.__key_to_direction:
-            is_field_changed = self.game_logic.move_character(self.__key_to_direction[self.key_press])
             # If field is changed, update the game map image.
-            if is_field_changed:
+            if self.game_logic.move_character(self.__key_to_direction[self.key_press]):
                 self.update()
         elif self.key_press == Qt.Key_Return:
             self.game_logic.next_player()
+        else:
+            pass
         self.key_press = ''
         self.repaint()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App(2)
+    ex = App(4)
     sys.exit(app.exec_())

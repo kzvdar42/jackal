@@ -336,6 +336,7 @@ class GameMap:
         for pos, characters in positions.items():
             for i, (character, ch_color) in enumerate(characters):
                 ellipse_size = self.tile_size / len(characters)
+                painter.save()
                 painter.setBrush(QBrush(get_character_color(ch_color), Qt.SolidPattern))
                 rect = QRect(*(self.scale_coords(pos) + i * ellipse_size),
                              ellipse_size, ellipse_size)
@@ -346,17 +347,19 @@ class GameMap:
                     painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
                     painter.drawEllipse(rect)
                     painter.setPen(Qt.NoPen)
+                painter.restore()
     
 
     def display_possible_turns(self, painter: QPainter,
                                poss_turns: List[Coords]):
         for coord in poss_turns:
+            painter.save()
             painter.setBrush(Qt.NoBrush)
             painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
             ellipse_size = self.tile_size
             painter.drawRect(*(self.scale_coords(coord)),
                                 ellipse_size, ellipse_size)
-            painter.setPen(Qt.NoPen)
+            painter.restore()
 
 
 # @staticmethod

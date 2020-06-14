@@ -8,11 +8,16 @@ from PyQt5.QtGui import QPainter
 class GameLogic:
     """The main logic of the game."""
 
-    def __init__(self, num_of_players: int):
+    def __init__(self, num_of_players: int, tile_size:int=64):
         assert num_of_players >= 1 and num_of_players <= 4
 
         # Init the game map.
-        self.game_map = GameMap(tile_size=64)
+        self.game_map = GameMap(tile_size=tile_size)
+
+        # Open all tiles. (For Debug)
+        # for x in range(0, 13):
+        #     for y in range(0, 13):
+        #         self.game_map[y][x].is_open = True
 
         # Init players.
         self.num_of_players = num_of_players
@@ -26,7 +31,7 @@ class GameLogic:
 
     def mouse_click(self, pos):
         mouse_coords = self.game_map.unscale_coords(pos)
-        self._move_character(mouse_coords)
+        return self._move_character(mouse_coords)
 
     def _get_current_player(self):
         return self.players[self.cur_player]
