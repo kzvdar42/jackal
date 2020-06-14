@@ -9,8 +9,10 @@ class Character:
     def __init__(self, coords, ch_type: str):
         self.coords = coords
         self.ch_type = ch_type
+        self.prev_coords = coords
 
     def move(self, coords):
+        self.prev_coords = self.coords
         self.coords = coords
 
 
