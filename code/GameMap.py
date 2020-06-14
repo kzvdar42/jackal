@@ -14,24 +14,6 @@ from PyQt5.QtGui import QPainter, QBrush, QPen, QColor, QImage
 from PyQt5.QtCore import Qt, QRect
 
 
-def resize_and_rotate_img(tile_img, tile_size, direction=None):
-    """Resize and rotate an image.
-
-    :param tile_img: Image to process
-    :param tile_size: Size to be matched
-    :param direction: Rotation direction in `__tile_dirs` key format
-    :return: Processed image
-    """
-
-    res_img = tile_img.copy()
-    res_img = res_img.resize((tile_size, tile_size))
-
-    if direction:
-        res_img = res_img.rotate(direction)
-
-    return res_img
-
-
 class Coords(Iterable):
     """Class for coords and math associated with them."""
 
@@ -273,9 +255,6 @@ class GameMap:
         assert len(tiles) == 0, \
             'All tiles must be used during the map creation!'
         return game_map
-
-    def resize_and_rotate_img(self, tile_img, direction):
-        return resize_and_rotate_img(tile_img, self.tile_size, direction)
 
     def get_tile_pixel_inds(self, coords):
         x, y = coords
