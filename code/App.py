@@ -92,7 +92,7 @@ class App(QWidget):
         elif self.key_press == Qt.Key_Alt:
             self.game_logic.next_character()
         else:
-            pass
+            return
         self.key_press = ''
         self.repaint()
 
