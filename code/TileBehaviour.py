@@ -10,7 +10,7 @@ def __water(game_map, cur_player, cur_char, coords):
     return (
         cur_player.ship_coords == coords or
         'dir' in cur_tile_type or
-        cur_tile_type in ['water', 'cannon', 'horses']
+        cur_tile_type in ['water', 'cannon', 'horses', 'ice_lake']
     )
 
 __tile_type_to_behavior = {
