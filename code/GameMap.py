@@ -11,11 +11,11 @@ from Characters import Character
 from TileBehaviour import get_tile_behavior
 
 from PIL import Image
-from PyQt5.QtGui import QPainter, QBrush, QPen, QColor
+from PyQt5.QtGui import QPainter, QBrush, QPen, QColor, QImage
 from PyQt5.QtCore import Qt, QRect
 
 
-def resize_and_rotate_img(tile_img, tile_size, direction):
+def resize_and_rotate_img(tile_img, tile_size, direction=None):
     """Resize and rotate an image.
 
     :param tile_img: Image to process
@@ -298,6 +298,12 @@ class GameMap:
                 return QColor(*color_to_rgb(color))
             else:
                 raise NotImplemented('The color for non pirate characters is not yet defined.')
+        
+        # Display each player's ship.
+        for player in players:
+            pl_boat = QImage(os.path.join('tile_images', f'boat_{player.color}.png'))
+            pl_boat = pl_boat.scaled(self.tile_size, self.tile_size)
+            painter.drawImage(*self.scale_coords(player.ship_coords), pl_boat)
 
         # TODO: Find a better way to understand if players are on the same tile.
         # Extract positions.
