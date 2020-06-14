@@ -89,6 +89,8 @@ class App(QWidget):
                 self.update()
         elif self.key_press == Qt.Key_Return:
             self.game_logic.next_player()
+        elif self.key_press == Qt.Key_Alt:
+            self.game_logic.next_character()
         else:
             pass
         self.key_press = ''

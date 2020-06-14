@@ -110,3 +110,7 @@ class GameLogic:
 
     def next_player(self):
         self.cur_player = (self.cur_player + 1) % self.num_of_players
+    
+    def next_character(self):
+        cur_player = self.players[self.cur_player]
+        self.cur_character = (self.cur_character + 1) % len(cur_player.characters)
