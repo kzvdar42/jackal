@@ -33,7 +33,7 @@ def resize_and_rotate_img(tile_img, tile_size, direction):
     return res_img
 
 
-class Coords:
+class Coords(Iterable):
     """Class for coords and math associated with them."""
 
     def __init__(self, x, y):
@@ -69,6 +69,10 @@ class Coords:
     
     def copy(self):
         return Coords(*self.coords)
+    
+    def __iter__(self):
+        for val in self.coords:
+            yield val
 
     def __len__(self):
         return 2
