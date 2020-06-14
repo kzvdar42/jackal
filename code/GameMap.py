@@ -66,6 +66,9 @@ class Coords:
         new_coords = list(self.coords)
         new_coords[idx] = value
         self.coords = tuple(new_coords)
+    
+    def copy(self):
+        return Coords(*self.coords)
 
     def __len__(self):
         return 2
