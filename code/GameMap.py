@@ -47,10 +47,10 @@ class Coords(Iterable):
         new_coords = list(self.coords)
         new_coords[idx] = value
         self.coords = tuple(new_coords)
-    
+
     def copy(self):
         return Coords(*self.coords)
-    
+
     def __iter__(self):
         for val in self.coords:
             yield val
@@ -123,7 +123,7 @@ class GameMap:
     @staticmethod
     def get_map_shape():
         return Coords(13, 13)
-    
+
     @staticmethod
     def is_in_bounds(coord: Coords) -> bool:
         for ax_val in coord:
@@ -169,20 +169,21 @@ class GameMap:
         self.tile_size = tile_size
         self.game_map = self.__create_map()
         self.tile_images = self.load_tile_images('tile_images', self.tile_size)
-    
+
     @staticmethod
     def load_tile_images(path, tile_size):
         """Load tile images from the given path and scale to the tile_size.
         """
         tile_images = {}
         tile_types = set(GameMap.__get_all_tiles())
-        tile_types.update(['back', 'boat_black', 'boat_red', 'boat_white', 'boat_yellow'])
+        tile_types.update(['back', 'boat_black', 'boat_red',
+                           'boat_white', 'boat_yellow'])
         for tile_type in tile_types:
             tile_image = QImage(os.path.join(path, f'{tile_type}.png'))
             tile_image = tile_image.scaled(tile_size, tile_size)
             tile_images[tile_type] = tile_image
         return tile_images
-    
+
     @staticmethod
     def __is_in_water(coords):
         """Check if this coordinates are in water."""
@@ -219,7 +220,7 @@ class GameMap:
             2: Coords(map_shape[0] - 1, axis_centers[1]),
             3: Coords(axis_centers[0], 0),
         }[side]
-    
+
     def __getitem__(self, idx):
         if isinstance(idx, Coords):
             x, y = idx
@@ -270,7 +271,7 @@ class GameMap:
         if not isinstance(coords, Coords):
             coords = Coords(*coords)
         return coords // self.tile_size
-    
+
     def display_map(self, painter: QPainter):
         for x in range(0, 13):
             for y in range(0, 13):
@@ -298,7 +299,7 @@ class GameMap:
                 return QColor(*color_to_rgb(color))
             else:
                 raise NotImplemented('The color for non pirate characters is not yet defined.')
-        
+
         # Display each player's ship.
         for player in players:
             pl_boat = QImage(os.path.join('tile_images', f'boat_{player.color}.png'))
@@ -327,17 +328,14 @@ class GameMap:
                     painter.drawEllipse(rect)
                     painter.setPen(Qt.NoPen)
                 painter.restore()
-    
 
-    def display_possible_turns(self, painter: QPainter,
-                               poss_turns: List[Coords]):
+    def display_possible_turns(self, painter: QPainter, poss_turns: List[Coords]):
         for coord in poss_turns:
             painter.save()
             painter.setBrush(Qt.NoBrush)
             painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
-            ellipse_size = self.tile_size
-            painter.drawRect(*(self.scale_coords(coord)),
-                                ellipse_size, ellipse_size)
+            rect_size = self.tile_size
+            painter.drawRect(*(self.scale_coords(coord)), rect_size, rect_size)
             painter.restore()
 
 

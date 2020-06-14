@@ -8,7 +8,7 @@ from PyQt5.QtGui import QPainter
 class GameLogic:
     """The main logic of the game."""
 
-    def __init__(self, num_of_players: int, tile_size:int=64):
+    def __init__(self, num_of_players: int, tile_size: int = 64):
         assert num_of_players >= 1 and num_of_players <= 4
 
         # Init the game map.
@@ -86,18 +86,18 @@ class GameLogic:
         # TODO: Handle ship movement.
         if ch_coords == cur_player.ship_coords:
             return [ch_coords + {
-                        0: (1, 0),
-                        1: (0, -1),
-                        2: (-1, 0),
-                        3: (0, 1)
-                    }[cur_player.side]]
+                0: (1, 0),
+                1: (0, -1),
+                2: (-1, 0),
+                3: (0, 1)
+            }[cur_player.side]]
         tile_type = self.game_map[ch_coords].tile_type
         pos_turns = get_possible_turns(tile_type, self.game_map, cur_player, cur_char)
         return pos_turns
 
     def display_map(self, painter: QPainter):
         return self.game_map.display_map(painter)
-    
+
     def get_map_shape(self):
         return self.game_map.scale_coords(self.game_map.get_map_shape())
 
@@ -110,7 +110,7 @@ class GameLogic:
 
     def next_player(self):
         self.cur_player = (self.cur_player + 1) % self.num_of_players
-    
+
     def next_character(self):
         cur_player = self.players[self.cur_player]
         self.cur_character = (self.cur_character + 1) % len(cur_player.characters)

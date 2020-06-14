@@ -49,7 +49,7 @@ class App(QWidget):
     def start(self):
         self.time.start(20, self)
         self.repaint()
-    
+
     def update(self):
         # Force the redrawing of the map on state update.
         self.pixmap = None
