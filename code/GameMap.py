@@ -8,7 +8,7 @@ from functools import partial
 import operator
 
 from Characters import Character
-from TileBehaviour import get_tile_behavior
+from CanStep import get_tile_behavior
 
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor, QImage
 from PyQt5.QtCore import Qt, QRect
@@ -331,8 +331,14 @@ class GameMap:
                 rect_pos = self.scale_coords(pos) + i * ellipse_size
                 rect = QRect(*rect_pos, ellipse_size, ellipse_size)
                 painter.drawEllipse(rect)
+                # Display red circle if character is drunk.
+                if character.state in ['drunk', 'hangover']:
+                    painter.setBrush(Qt.NoBrush)
+                    color = 'red' if character.state == 'drunk' else 'orange'
+                    painter.setPen(QPen(QColor(color), 15))
+                    painter.drawEllipse(rect)
                 # Display counter if character is on spinning tile.
-                if 'spinning' in self[pos].tile_type:
+                elif 'spinning' in self[pos].tile_type:
                     painter.setPen(QPen(QColor('black'), 3))
                     text = str(character.spinning_counter)
                     text_br = painter.boundingRect(rect, Qt.AlignCenter, text)
@@ -342,7 +348,6 @@ class GameMap:
                     painter.setBrush(Qt.NoBrush)
                     painter.setPen(QPen(QColor(*color_to_rgb('green')), 5))
                     painter.drawEllipse(rect)
-                    painter.setPen(Qt.NoPen)
                 painter.restore()
 
     def display_possible_turns(self, painter: QPainter, poss_turns: List[Coords]):

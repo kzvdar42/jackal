@@ -138,15 +138,16 @@ def __horses_turns(game_map, cur_player, cur_char):
 
 
 def __spinning(game_map, cur_player, cur_char):
-    cur_coords = cur_char.coords
-    max_spin = Tile.get_max_spin(game_map[cur_coords].tile_type)
+    max_spin = Tile.get_max_spin(game_map[cur_char.coords].tile_type)
     
     if cur_char.spinning_counter >= max_spin:
         return default_turns(game_map, cur_player, cur_char)
-    elif cur_char.spinning_counter < 1:
-        cur_char.spinning_counter = 1
-    return [cur_coords]
+    return [cur_char.coords]
 
+def __drinking_rum_turns(game_map, cur_player, cur_char):
+    if cur_char.state == 'alive':
+        return default_turns(game_map, cur_player, cur_char)
+    return []
 
 __tile_type_to_turns = {
     'water': __water_turns,
@@ -167,6 +168,7 @@ __tile_type_to_turns = {
     'spinning_3': __spinning,
     'spinning_4': __spinning,
     'spinning_5': __spinning,
+    'drinking_rum': __drinking_rum_turns,
 }
 
 
@@ -174,6 +176,7 @@ def get_possible_turns(tile_type, game_map, cur_player, cur_char):
     tile_type_to_turns = defaultdict(lambda: default_turns)
     tile_type_to_turns.update(__tile_type_to_turns)
 
+    # Get the list of possible turns.
     pos_turns = tile_type_to_turns[tile_type](game_map, cur_player, cur_char)
     # Accept turn only if it in map bounds.
     pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord)]

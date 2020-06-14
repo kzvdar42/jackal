@@ -1,7 +1,8 @@
 from GameMap import GameMap, Coords
 from Characters import Player
-from TileTurns import get_possible_turns
-from TileStep import finish_step
+from StartStep import start_step
+from PossibleTurns import get_possible_turns
+from EndStep import finish_step
 
 from PyQt5.QtGui import QPainter
 
@@ -53,6 +54,7 @@ class GameLogic:
             cur_char = self._get_current_character()
             finish_step(self.game_map, cur_player, cur_char)
             self._get_current_character().move(coords)
+            start_step(self.game_map, cur_player, cur_char)
             # Open corresponding tile. And return true to update the map.
             if not self.game_map[coords].is_open:
                 self.game_map[coords].is_open = True
@@ -111,6 +113,10 @@ class GameLogic:
 
     def next_player(self):
         self.cur_player = (self.cur_player + 1) % self.num_of_players
+        cur_player = self._get_current_player()
+        for i in range(len(cur_player.characters)):
+            cur_char = cur_player.characters[i]
+            start_step(self.game_map, cur_player, cur_char)
 
     def next_character(self):
         cur_player = self.players[self.cur_player]

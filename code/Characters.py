@@ -6,9 +6,19 @@ class Character:
     Possible `ch_types` are: `pirate`.
     """
 
+    @staticmethod
+    def possible_states():
+        return [
+            'alive',
+            'drunk',
+            'hangover',
+            'trapped',
+        ]
+
     def __init__(self, coords, ch_type: str):
         self.coords = coords
         self.ch_type = ch_type
+        self.state = 'alive'
         self.spinning_counter = -1
         self.prev_coords = coords
 
