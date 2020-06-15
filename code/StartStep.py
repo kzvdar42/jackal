@@ -22,12 +22,16 @@ def __drinking_rum(game_map, cur_player, cur_char):
         cur_char.state = 'alive'
         cur_char.prev_coords = cur_char.coords
 
+def __ogre(game_map, cur_player, cur_char):
+    cur_player.characters.remove(cur_char)
+
 __tile_type_to_start = {
     'spinning_2': __spinning,
     'spinning_3': __spinning,
     'spinning_4': __spinning,
     'spinning_5': __spinning,
     'drinking_rum': __drinking_rum,
+    'ogre': __ogre,
 }
 
 

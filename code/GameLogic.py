@@ -17,9 +17,9 @@ class GameLogic:
         self.game_map = GameMap(tile_size=tile_size)
 
         # Open all tiles. (For Debug)
-        # for x in range(0, 13):
-        #     for y in range(0, 13):
-        #         self.game_map[y][x].is_open = True
+        for x in range(0, 13):
+            for y in range(0, 13):
+                self.game_map[y][x].is_open = True
 
         # Init players.
         self.num_of_players = num_of_players
@@ -37,9 +37,21 @@ class GameLogic:
 
     def _get_current_player(self):
         return self.players[self.cur_player]
+    
+    def _get_alive_characters(self):
+        cur_player = self._get_current_player()
+        characters = list(filter(lambda ch: ch.state == 'alive', cur_player.characters))
+        if len(characters) == 0:
+            self.next_player()
+            return self._get_alive_characters()
+        # If the counter is bigger than possible, reset it.
+        if self.cur_character >= len(characters):
+            self.cur_character = 0
+        return characters
 
     def _get_current_character(self):
-        return self._get_current_player().characters[self.cur_character]
+        characters = self._get_alive_characters()
+        return characters[self.cur_character]
 
     def _move_character(self, coords):
         """Move the current character to the given coords.
@@ -81,8 +93,9 @@ class GameLogic:
     def _get_possible_turns(self):
         """Get possible turns for current character.
         """
-        cur_player = self._get_current_player()
+        # Getting character can change the current player.
         cur_char = self._get_current_character()
+        cur_player = self._get_current_player()
         ch_coords = cur_char.coords
 
         # If on the ship, can move only forward.
@@ -119,5 +132,5 @@ class GameLogic:
             start_step(self.game_map, cur_player, cur_char)
 
     def next_character(self):
-        cur_player = self.players[self.cur_player]
-        self.cur_character = (self.cur_character + 1) % len(cur_player.characters)
+        characters = self._get_alive_characters()
+        self.cur_character = (self.cur_character + 1) % len(characters)
