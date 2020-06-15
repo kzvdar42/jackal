@@ -140,11 +140,16 @@ def __horses_turns(game_map, cur_player, cur_char):
 def __spinning(game_map, cur_player, cur_char):
     max_spin = Tile.get_max_spin(game_map[cur_char.coords].tile_type)
     
-    if cur_char.spinning_counter >= max_spin:
+    if cur_char.spin_counter >= max_spin:
         return default_turns(game_map, cur_player, cur_char)
     return [cur_char.coords]
 
 def __drinking_rum_turns(game_map, cur_player, cur_char):
+    if cur_char.state == 'alive':
+        return default_turns(game_map, cur_player, cur_char)
+    return []
+
+def __trap_turns(game_map, cur_player, cur_char):
     if cur_char.state == 'alive':
         return default_turns(game_map, cur_player, cur_char)
     return []
@@ -169,17 +174,19 @@ __tile_type_to_turns = {
     'spinning_4': __spinning,
     'spinning_5': __spinning,
     'drinking_rum': __drinking_rum_turns,
+    'trap': __trap_turns,
 }
 
 
-def get_possible_turns(tile_type, game_map, cur_player, cur_char):
-    tile_type_to_turns = defaultdict(lambda: default_turns)
-    tile_type_to_turns.update(__tile_type_to_turns)
+tile_type_to_turns = defaultdict(lambda: default_turns)
+tile_type_to_turns.update(__tile_type_to_turns)
 
+
+def get_possible_turns(tile_type, game_map, players, cur_player, cur_char):
     # Get the list of possible turns.
     pos_turns = tile_type_to_turns[tile_type](game_map, cur_player, cur_char)
     # Accept turn only if it in map bounds.
     pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord)]
     # Accept turn only if you can step on this tile right now.
-    pos_turns = [coord for coord in pos_turns if game_map[coord].can_step(game_map, cur_player, cur_char, coord)]
+    pos_turns = [coord for coord in pos_turns if game_map[coord].can_step(game_map, players, cur_player, cur_char, coord)]
     return pos_turns

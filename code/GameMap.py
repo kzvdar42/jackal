@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from functools import partial
 import operator
 
-from Characters import Character
+from Characters import Player, Character, map_players_to_positions
 from CanStep import get_tile_behavior
 
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor, QImage
@@ -237,7 +237,7 @@ class GameMap:
     def __getitem__(self, idx):
         if isinstance(idx, Coords):
             x, y = idx
-            return self.game_map[y][x]
+            return self.game_map[x][y]
         else:
             return self.game_map[idx]
 
@@ -264,7 +264,7 @@ class GameMap:
 
                 # Set random direction
                 tile_dir = random.sample(Tile.get_tile_dirs(), 1)[0]
-                game_map[y][x] = Tile(tile_type, tile_dir)
+                game_map[x][y] = Tile(tile_type, tile_dir)
 
         assert len(tiles) == 0, \
             'All tiles must be used during the map creation!'
@@ -286,8 +286,7 @@ class GameMap:
         return coords // self.tile_size
 
     def display_map(self, painter: QPainter):
-        for coords, tile in np.ndenumerate(self.game_map):
-            coords = Coords(*reversed(coords))
+        for coord, tile in np.ndenumerate(self.game_map):
             # TODO: Add 'water' tile image.
             if tile.tile_type == 'water':
                 continue
@@ -296,13 +295,13 @@ class GameMap:
             else:
                 tile_img = self.tile_images['back']
             # Move to the center of tile, rotate, move back
-            painter.translate(*self.scale_coords(coords + (0.5, 0.5)))
+            painter.translate(*self.scale_coords(Coords(*coord) + (0.5, 0.5)))
             painter.rotate(tile.direction)
             painter.drawImage(*self.scale_coords((-0.5, -0.5)), tile_img)
             painter.resetTransform()
 
     def display_players(self, painter: QPainter,
-                        players: List[Character], cur_character: Character):
+                        players: List[Player], cur_character: Character):
 
         def get_character_color(color):
             if character.ch_type == 'pirate':
@@ -316,12 +315,8 @@ class GameMap:
             pl_boat = pl_boat.scaled(self.tile_size, self.tile_size)
             painter.drawImage(*self.scale_coords(player.ship_coords), pl_boat)
 
-        # TODO: Find a better way to understand if players are on the same tile.
         # Extract positions.
-        positions = defaultdict(list)
-        for player in players:
-            for character in player.characters:
-                positions[character.coords].append((character, player.color))
+        positions = map_players_to_positions(players)
         # Display the characters at each position.
         for pos, characters in positions.items():
             for i, (character, ch_color) in enumerate(characters):
@@ -331,16 +326,16 @@ class GameMap:
                 rect_pos = self.scale_coords(pos) + i * ellipse_size
                 rect = QRect(*rect_pos, ellipse_size, ellipse_size)
                 painter.drawEllipse(rect)
-                # Display red circle if character is drunk.
-                if character.state in ['drunk', 'hangover']:
+                # Display red circle if character is drunk/trapped.
+                if character.state in ['drunk', 'hangover', 'trapped']:
                     painter.setBrush(Qt.NoBrush)
-                    color = 'red' if character.state == 'drunk' else 'orange'
+                    color = 'red' if character.state in ['drunk', 'trapped'] else 'orange'
                     painter.setPen(QPen(QColor(color), 15))
                     painter.drawEllipse(rect)
                 # Display counter if character is on spinning tile.
                 elif 'spinning' in self[pos].tile_type:
                     painter.setPen(QPen(QColor('black'), 3))
-                    text = str(character.spinning_counter)
+                    text = str(character.spin_counter)
                     text_br = painter.boundingRect(rect, Qt.AlignCenter, text)
                     painter.drawText(text_br, 1, text)
                 # Display the glow outside the current player.

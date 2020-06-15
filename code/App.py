@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPixmap
 from PyQt5.QtCore import Qt, QPoint, QBasicTimer
 
-import GameMap
 from GameLogic import GameLogic
 from Characters import Player
 

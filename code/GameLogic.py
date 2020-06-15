@@ -66,7 +66,7 @@ class GameLogic:
             cur_char = self._get_current_character()
             finish_step(self.game_map, cur_player, cur_char)
             self._get_current_character().move(coords)
-            start_step(self.game_map, cur_player, cur_char)
+            start_step(self.game_map, self.players, cur_player, cur_char)
             # Open corresponding tile. And return true to update the map.
             if not self.game_map[coords].is_open:
                 self.game_map[coords].is_open = True
@@ -108,7 +108,7 @@ class GameLogic:
                 3: (0, 1)
             }[cur_player.side]]
         tile_type = self.game_map[ch_coords].tile_type
-        pos_turns = get_possible_turns(tile_type, self.game_map, cur_player, cur_char)
+        pos_turns = get_possible_turns(tile_type, self.game_map, self.players, cur_player, cur_char)
         return pos_turns
 
     def display_map(self, painter: QPainter):
@@ -129,7 +129,7 @@ class GameLogic:
         cur_player = self._get_current_player()
         for i in range(len(cur_player.characters)):
             cur_char = cur_player.characters[i]
-            start_step(self.game_map, cur_player, cur_char)
+            start_step(self.game_map, self.players, cur_player, cur_char)
 
     def next_character(self):
         characters = self._get_alive_characters()

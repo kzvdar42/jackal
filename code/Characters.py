@@ -1,4 +1,4 @@
-# from GameMap import Coords
+from collections import defaultdict
 
 
 class Character:
@@ -19,7 +19,7 @@ class Character:
         self.coords = coords
         self.ch_type = ch_type
         self.state = 'alive'
-        self.spinning_counter = -1
+        self.spin_counter = -1
         self.prev_coords = coords
 
     def move(self, coords):
@@ -45,3 +45,16 @@ class Player:
         self.ship_coords = start_coords
         self.characters = [Character(start_coords, ch_type='pirate')
                            for _ in range(3)]
+    
+    def add_character(self, start_coords, ch_type):
+        self.characters.append(Character(start_coords, ch_type))
+
+
+# @staticmethod
+def map_players_to_positions(players):
+    # TODO: Find a better way to understand if players are on the same tile.
+    positions = defaultdict(list)
+    for player in players:
+        for character in player.characters:
+            positions[character.coords].append((character, player.color))
+    return positions
