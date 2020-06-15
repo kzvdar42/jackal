@@ -14,12 +14,13 @@ def __spinning(game_map, cur_player, cur_char):
 
 
 def __drinking_rum(game_map, cur_player, cur_char):
-    if cur_char.state == 'alive':
+    if cur_char.state == 'alive' and cur_char.prev_coords != cur_char.coords:
         cur_char.state = 'drunk'
     elif cur_char.state == 'drunk':
         cur_char.state = 'hangover'
     elif cur_char.state == 'hangover':
         cur_char.state = 'alive'
+        cur_char.prev_coords = cur_char.coords
 
 __tile_type_to_start = {
     'spinning_2': __spinning,
