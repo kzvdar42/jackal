@@ -100,18 +100,8 @@ class GameLogic:
         # Getting character can change the current player.
         cur_char = self._get_current_character()
         cur_player = self._get_current_player()
-        ch_coords = cur_char.coords
 
-        # If on the ship, can move only forward.
-        # TODO: Handle ship movement.
-        if ch_coords == cur_player.ship_coords:
-            return [ch_coords + {
-                0: (1, 0),
-                1: (0, -1),
-                2: (-1, 0),
-                3: (0, 1)
-            }[cur_player.side]]
-        tile_type = self.game_map[ch_coords].tile_type
+        tile_type = self.game_map[cur_char.coords].tile_type
         pos_turns = get_possible_turns(tile_type, self.game_map, self.players, cur_player, cur_char)
         return pos_turns
 

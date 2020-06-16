@@ -16,6 +16,15 @@ def default_turns(game_map, cur_player, cur_char):
 
 
 def __water_turns(game_map, cur_player, cur_char):
+    # TODO: Handle ship movement.
+    # If on the ship, can move only forward.
+    if cur_char.coords == cur_player.ship_coords:
+        return [cur_char.coords + {
+            0: (1, 0),
+            1: (0, -1),
+            2: (-1, 0),
+            3: (0, 1)
+        }[cur_player.side]]
     pos_turns = default_turns(game_map, cur_player, cur_char)
     pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord) and game_map[coord].tile_type == 'water']
     return pos_turns
