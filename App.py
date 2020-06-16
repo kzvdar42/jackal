@@ -1,14 +1,11 @@
 import sys
-import time
-import random
 
 from PIL.ImageQt import ImageQt
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPixmap
 from PyQt5.QtCore import Qt, QPoint, QBasicTimer
 
-from GameLogic import GameLogic
-from Characters import Player
+from code import GameLogic
 
 
 class App(QWidget):

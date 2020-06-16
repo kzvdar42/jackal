@@ -1,6 +1,7 @@
 from collections import defaultdict
 
-from GameMap import Tile, Coords
+from code.behaviour import get_tile_behavior
+from code.data import Tile, Coords
 
 
 def default_turns(game_map, cur_player, cur_char):
@@ -222,6 +223,4 @@ def get_possible_turns(game_map, players, cur_player, cur_char):
     pos_turns = [Coords(*coords) for coords in pos_turns]
     # Accept turn only if it in map bounds.
     pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord)]
-    # Accept turn only if you can step on this tile right now.
-    pos_turns = [coord for coord in pos_turns if game_map[coord].can_step(game_map, players, cur_player, cur_char, coord)]
     return pos_turns

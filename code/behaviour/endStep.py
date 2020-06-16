@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from GameMap import Tile
+from code.data import Tile
 
 
 def default_end(game_map, cur_player, cur_char, coords):

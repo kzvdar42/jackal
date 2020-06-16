@@ -1,10 +1,8 @@
 from collections import defaultdict
 
-from GameMap import GameMap, Coords
-from Characters import Player
-from StartStep import start_step, tile_type_to_is_final
-from PossibleTurns import get_possible_turns
-from EndStep import finish_step
+from code import GameMap
+from code.data import Coords, Player
+from code.behaviour import start_step, tile_type_to_is_final, get_possible_turns, get_tile_behavior, finish_step
 
 from PyQt5.QtGui import QPainter
 
@@ -176,7 +174,12 @@ class GameLogic:
         cur_char = self._get_current_character()
         cur_player = self._get_current_player()
 
-        pos_turns = get_possible_turns(self.game_map, self.players, cur_player, cur_char)
+        # Get possible turns.
+        args = self.game_map, self.players, cur_player, cur_char
+        pos_turns = get_possible_turns(*args)
+        # Accept turn only if you can step on this tile right now.
+        can_step = lambda coord: get_tile_behavior(self.game_map[coord].tile_type)(*args, coord)
+        pos_turns = [coord for coord in pos_turns if can_step(coord)]
         return pos_turns
 
     def display_map(self, painter: QPainter):

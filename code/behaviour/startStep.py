@@ -1,7 +1,6 @@
 from collections import defaultdict
 
-from GameMap import Tile
-from Characters import map_players_to_positions
+from code.data import Tile, map_players_to_positions
 
 
 def default_start(game_map, players, cur_player, cur_char):

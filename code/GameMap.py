@@ -2,133 +2,22 @@ import os
 import random
 from typing import List, Tuple
 import numpy as np
-from collections import defaultdict
-from collections.abc import Iterable
-from functools import partial
-import operator
 
-from Characters import Player, Character, map_players_to_positions
-from CanStep import get_tile_behavior
+from code.data import Player, Character, map_players_to_positions, Coords, Tile
 
 from PyQt5.QtGui import QPainter, QBrush, QPen, QColor, QImage
 from PyQt5.QtCore import Qt, QRect
 
 
-class Coords(Iterable):
-    """Class for coords and math associated with them."""
-
-    def __init__(self, x, y):
-        self.coords = x, y
-
-    def __perform_op(self, operation, other, inplace=False, from_right=False):
-        x, y = self.coords
-        if not isinstance(other, Iterable):
-            other = (other, other)
-        if from_right:
-            x, y, other = *other, (x, y)
-        # TODO: Better comment for the assert.
-        assert len(other) == 2, "Length should be two."
-        x = operation(x, other[0])
-        y = operation(y, other[1])
-        if inplace:
-            self.coords = x, y
-        return Coords(x, y)
-
-    def get_coords(self):
-        return self.coords
-
-    def set_coords(self, x, y):
-        self.coords = x, y
-
-    def __getitem__(self, idx):
-        return self.coords[idx]
-
-    def __setitem__(self, idx, value):
-        new_coords = list(self.coords)
-        new_coords[idx] = value
-        self.coords = tuple(new_coords)
-
-    def copy(self):
-        return Coords(*self.coords)
-
-    def __iter__(self):
-        for val in self.coords:
-            yield val
-
-    def __len__(self):
-        return 2
-
-    def __repr__(self):
-        return f'<Coords: {self.coords}>'
-
-    def __hash__(self):
-        return hash(self.coords)
-
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.coords == other.coords
-        else:
-            return self.coords[0] == other[0] and self.coords[1] == other[1]
-
-    def __add__(self, other):
-        return self.__perform_op(operator.add, other)
-    __radd__ = __add__
-
-    def __mul__(self, other):
-        return self.__perform_op(operator.mul, other)
-    __rmul__ = __mul__
-
-    def __neg__(self):
-        return Coords(-self.coords[0], -self.coords[1])
-
-    def __sub__(self, other):
-        return self.__perform_op(operator.sub, other)
-
-    def __rsub__(self, other):
-        return self.__perform_op(operator.sub, other, from_right=True)
-
-    def __floordiv__(self, other):
-        return self.__perform_op(operator.floordiv, other)
-
-    def __rfloordiv__(self, other):
-        return self.__perform_op(operator.floordiv, other, from_right=True)
-
-
-class Tile:
-
-    @staticmethod
-    def get_tile_dirs():
-        """Tile direction format."""
-        return [  # TODO: change to a more readable format ('left', 'right', etc.)
-            0,  # ↑
-            90,  # ->
-            180,  # ↓
-            270,  # <-
-        ]
-
-    @staticmethod
-    def get_max_spin(tile_type):
-        return {
-            'spinning_2': 2,
-            'spinning_3': 3,
-            'spinning_4': 4,
-            'spinning_5': 5,
-        }[tile_type]
-
-    def __init__(self, tile_type, direction):
-        self.tile_type = tile_type
-        self.direction = direction
-        self.is_open = False
-        self.active = True
-        self.objects = []
-        self.can_step = get_tile_behavior(tile_type)
-
-    def open(self):
-        self.is_open = True
-        pass
-
-    def __repr__(self):
-        return f'<Tile: {self.tile_type}>'
+# @staticmethod
+def color_to_rgb(game_color):
+    return {
+        'red': (238, 29, 35, 170),
+        'white': (255, 255, 255, 170),
+        'black': (35, 31, 32, 170),
+        'yellow': (255, 221, 23, 170),
+        'green': (127, 255, 0, 170),
+    }[game_color]
 
 
 class GameMap:
@@ -353,14 +242,3 @@ class GameMap:
             rect_size = self.tile_size
             painter.drawRect(*(self.scale_coords(coord)), rect_size, rect_size)
             painter.restore()
-
-
-# @staticmethod
-def color_to_rgb(game_color):
-    return {
-        'red': (238, 29, 35, 170),
-        'white': (255, 255, 255, 170),
-        'black': (35, 31, 32, 170),
-        'yellow': (255, 221, 23, 170),
-        'green': (127, 255, 0, 170),
-    }[game_color]

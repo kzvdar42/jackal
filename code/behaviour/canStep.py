@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from Characters import map_players_to_positions
+from code.data import map_players_to_positions
 
 
 def default_behavior(game_map, players, cur_player, cur_char, coords):
