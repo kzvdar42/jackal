@@ -105,7 +105,7 @@ class Tile:
             180,  # ↓
             270,  # <-
         ]
-    
+
     @staticmethod
     def get_max_spin(tile_type):
         return {
@@ -126,7 +126,7 @@ class Tile:
     def open(self):
         self.is_open = True
         pass
-    
+
     def __repr__(self):
         return f'<Tile: {self.tile_type}>'
 

@@ -45,7 +45,7 @@ class Player:
         self.ship_coords = start_coords
         self.characters = [Character(start_coords, ch_type='pirate')
                            for _ in range(3)]
-    
+
     def add_character(self, start_coords, ch_type):
         self.characters.append(Character(start_coords, ch_type))
 

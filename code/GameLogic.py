@@ -41,7 +41,7 @@ class GameLogic:
 
     def _get_current_player(self):
         return self.players[self.cur_player]
-    
+
     def _get_alive_characters(self):
         cur_player = self._get_current_player()
         characters = list(filter(lambda ch: ch.state == 'alive', cur_player.characters))
@@ -74,7 +74,7 @@ class GameLogic:
             # If first move and not finalized perform check for the cycle.
             if not is_finalized and not self.moved:
                 cycle_starts = self.detect_cycles()
-                self.cycles = {cs:False for cs in cycle_starts}
+                self.cycles = {cs: False for cs in cycle_starts}
             self.moved = True
             # If on the cycle starter, increase the counter.
             if self.cycles and coords in self.cycles:
@@ -92,7 +92,7 @@ class GameLogic:
                 self.game_map[coords].is_open = True
                 return True
         return False
-    
+
     def detect_cycles(self):
 
         def _return_leaves(tree, res=None):
@@ -152,7 +152,6 @@ class GameLogic:
         cur_char.coords, cur_char.prev_coords = init_coord, init_prev
         return paths, been_in
 
-
     def move_character(self, direction):
         """Move the current character ingiven direction.
 
@@ -177,8 +176,7 @@ class GameLogic:
         cur_char = self._get_current_character()
         cur_player = self._get_current_player()
 
-        tile_type = self.game_map[cur_char.coords].tile_type
-        pos_turns = get_possible_turns(tile_type, self.game_map, self.players, cur_player, cur_char)
+        pos_turns = get_possible_turns(self.game_map, self.players, cur_player, cur_char)
         return pos_turns
 
     def display_map(self, painter: QPainter):
