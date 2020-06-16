@@ -68,7 +68,7 @@ class GameLogic:
         if (self.game_map.is_in_bounds(coords) and coords in pos_turns):
             cur_char = self._get_current_character()
             cur_player = self._get_current_player()
-            finish_step(self.game_map, cur_player, cur_char)
+            finish_step(self.game_map, cur_player, cur_char, coords)
             self._get_current_character().move(coords)
             is_finalized = start_step(self.game_map, self.players, cur_player, cur_char)
             # If first move and not finalized perform check for the cycle.

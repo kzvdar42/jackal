@@ -14,17 +14,37 @@ def default_turns(game_map, cur_player, cur_char):
             pos_turns.append((x, y))
     return pos_turns
 
+def direction_offset(coords, side, direction):
+    offset = Coords(*{ # by default forward
+        0: (1, 0),
+        1: (0, -1),
+        2: (-1, 0),
+        3: (0, 1)
+    }[side])
+    if direction == 'backwards':
+        offset = -offset
+    elif direction == 'left':
+        offset = Coords(*(reversed(offset)))
+    elif direction == 'right':
+        offset = Coords(*reversed(-offset))
+    elif direction != 'forward':
+        raise ValueError('Unknown direction')
+    return coords + offset
+
 
 def __water_turns(game_map, cur_player, cur_char):
-    # TODO: Handle ship movement.
-    # If on the ship, can move only forward.
-    if cur_char.coords == cur_player.ship_coords:
-        return [cur_char.coords + {
-            0: (1, 0),
-            1: (0, -1),
-            2: (-1, 0),
-            3: (0, 1)
-        }[cur_player.side]]
+    # If on the ship, can move only forward or left/right with the ship.
+    cur_coords, pl_side = cur_char.coords, cur_player.side
+    if cur_coords == cur_player.ship_coords:
+        res = [direction_offset(cur_coords, pl_side, 'forward')]
+        # Can move left/right till ship will be on the shore.
+        left = direction_offset(cur_coords, pl_side, 'left')
+        if game_map[direction_offset(left, pl_side, 'forward')].tile_type != 'water':
+            res.append(left)
+        right = direction_offset(cur_coords, pl_side, 'right')
+        if game_map[direction_offset(right, pl_side, 'forward')].tile_type != 'water':
+            res.append(right)
+        return res
     pos_turns = default_turns(game_map, cur_player, cur_char)
     pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord) and game_map[coord].tile_type == 'water']
     return pos_turns
