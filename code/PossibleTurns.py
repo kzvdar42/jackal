@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from GameMap import Tile
+from GameMap import Tile, Coords
 
 
 def default_turns(game_map, cur_player, cur_char):
@@ -194,6 +194,8 @@ tile_type_to_turns.update(__tile_type_to_turns)
 def get_possible_turns(tile_type, game_map, players, cur_player, cur_char):
     # Get the list of possible turns.
     pos_turns = tile_type_to_turns[tile_type](game_map, cur_player, cur_char)
+    # XXX: Force turns into Coords format.
+    pos_turns = [Coords(*coords) for coords in pos_turns]
     # Accept turn only if it in map bounds.
     pos_turns = [coord for coord in pos_turns if game_map.is_in_bounds(coord)]
     # Accept turn only if you can step on this tile right now.

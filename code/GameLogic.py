@@ -1,6 +1,8 @@
+from collections import defaultdict
+
 from GameMap import GameMap, Coords
 from Characters import Player
-from StartStep import start_step
+from StartStep import start_step, tile_type_to_is_final
 from PossibleTurns import get_possible_turns
 from EndStep import finish_step
 
@@ -17,13 +19,14 @@ class GameLogic:
         self.game_map = GameMap(tile_size=tile_size)
 
         # Open all tiles. (For Debug)
-        # for x in range(0, 13):
-        #     for y in range(0, 13):
-        #         self.game_map[y][x].is_open = True
+        for x in range(0, 13):
+            for y in range(0, 13):
+                self.game_map[y][x].is_open = True
 
         # Init players.
         self.num_of_players = num_of_players
         self.moved = False
+        self.cycles = None
         self.cur_player = 0
         self.cur_character = 0
         self.players = []
@@ -63,19 +66,92 @@ class GameLogic:
         # Move if inside the bounds.
         pos_turns = self._get_possible_turns()
         if (self.game_map.is_in_bounds(coords) and coords in pos_turns):
-            self.moved = True
-            cur_player = self._get_current_player()
             cur_char = self._get_current_character()
+            cur_player = self._get_current_player()
             finish_step(self.game_map, cur_player, cur_char)
             self._get_current_character().move(coords)
-            # if turn end, switch to next player
-            if start_step(self.game_map, self.players, cur_player, cur_char):
+            is_finalized = start_step(self.game_map, self.players, cur_player, cur_char)
+            # If first move and not finalized perform check for the cycle.
+            if not is_finalized and not self.moved:
+                cycle_starts = self.detect_cycles()
+                self.cycles = {cs:False for cs in cycle_starts}
+            self.moved = True
+            # If on the cycle starter, increase the counter.
+            if self.cycles and coords in self.cycles:
+                # If stepped two times, it means that you returned back to the cycle start.
+                # Terminate the character.
+                if self.cycles[coords]:
+                    cur_player.characters.remove(cur_char)
+                else:
+                    self.cycles[coords] = True
+            # if turn end, switch to next player.
+            if is_finalized:
                 self.next_player()
             # Open corresponding tile. And return true to update the map.
             if not self.game_map[coords].is_open:
                 self.game_map[coords].is_open = True
                 return True
         return False
+    
+    def detect_cycles(self):
+
+        def _return_leaves(tree, res=None):
+            """Return leaves of given tree.
+            """
+            res = res or []
+            if isinstance(tree, Coords):
+                res.append(tree)
+            else:
+                for nodes in tree.values():
+                    for node in nodes:
+                        res.extend(_return_leaves(node))
+            return res
+
+        def _detect_cycles(tree):
+            """Detect path cycles and return the start of them.
+            """
+            n_cycles, cycles = 0, []
+            if isinstance(tree, Coords):
+                return cycles
+            for coord, nodes in tree.items():
+                for node in nodes:
+                    leaves = _return_leaves(node)
+                    # If can only return to this coord, it's a loop.
+                    if coord in leaves and len(leaves) == 1:
+                        n_cycles += 1
+                    else:
+                        cycles.extend(_detect_cycles(node))
+            # If number of loops is equal to number of subtrees, this node is a start of the loop.
+            return [coord] if nodes and n_cycles == len(nodes) else cycles
+
+        path_tree, _ = self.get_path_tree()
+        return _detect_cycles(path_tree)
+
+    def get_path_tree(self, been_in=None):
+        been_in = been_in or set()
+        cur_char = self._get_current_character()
+        # Save state.
+        init_coord, init_prev = cur_char.coords, cur_char.prev_coords
+        paths = defaultdict(list)
+        # Get list of possible turns.
+        for coord in self._get_possible_turns():
+            # If not visited this tile yet, continue.
+            if coord not in been_in:
+                # If turn is not finalized in this tile, continue
+                if not tile_type_to_is_final[self.game_map[coord].tile_type]:
+                    been_in.add(coord)
+                    cur_char.move(coord)
+                    sub_paths, been_in = self.get_path_tree(been_in)
+                    # If no sub-paths, set coord as sub-path.
+                    if not sub_paths:
+                        sub_paths = coord
+                    paths[init_coord].append(sub_paths)
+                else:
+                    paths[init_coord].append(coord)
+        # Restore state.
+        cur_char.coords, cur_char.prev_coords = init_coord, init_prev
+        return paths, been_in
+
 
     def move_character(self, direction):
         """Move the current character ingiven direction.
@@ -120,10 +196,11 @@ class GameLogic:
 
     def next_player(self):
         self.moved = False
+        self.cycles = None
         self.cur_player = (self.cur_player + 1) % self.num_of_players
         cur_player = self._get_current_player()
-        for i in range(len(cur_player.characters)):
-            cur_char = cur_player.characters[i]
+        # Perform `start_step` for each character.
+        for cur_char in cur_player.characters:
             start_step(self.game_map, self.players, cur_player, cur_char)
 
     def next_character(self):
