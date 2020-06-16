@@ -10,6 +10,13 @@ def default_start(game_map, players, cur_player, cur_char):
         if pl_color != cur_player.color:
             character.coords = cl_to_player[pl_color].ship_coords
 
+def continue_step(game_map, players, cur_player, cur_char):
+    default_start(game_map, players, cur_player, cur_char)
+    return False
+
+def stop_step(game_map, players, cur_player, cur_char):
+    default_start(game_map, players, cur_player, cur_char)
+    return True
 
 def __spinning(game_map, players, cur_player, cur_char):
     max_spin = Tile.get_max_spin(game_map[cur_char.coords].tile_type)
@@ -22,6 +29,7 @@ def __spinning(game_map, players, cur_player, cur_char):
     for character, pl_color in characters:
         if character.spin_counter == cur_char.spin_counter and pl_color != cur_player.color:
             character.coords = cl_to_player[pl_color].ship_coords
+    return True
 
 
 def __drinking_rum(game_map, players, cur_player, cur_char):
@@ -32,13 +40,16 @@ def __drinking_rum(game_map, players, cur_player, cur_char):
     elif cur_char.state == 'hangover':
         cur_char.state = 'alive'
         cur_char.prev_coords = cur_char.coords
+    return True
 
 def __ogre(game_map, players, cur_player, cur_char):
     cur_player.characters.remove(cur_char)
+    return True
 
 def __aborigine(game_map, players, cur_player, cur_char):
     if len(cur_player.characters) < 3:
         cur_player.add_character(cur_char.coords, ch_type='pirate')
+    return True
 
 def __trap(game_map, players, cur_player, cur_char):
     characters = map_players_to_positions(players).get(cur_char.coords)
@@ -60,6 +71,7 @@ def __trap(game_map, players, cur_player, cur_char):
     else:
         cur_char.state = 'alive'
         cur_char.prev_coords = cur_char.coords
+    return True
 
 
 def __water(game_map, players, cur_player, cur_char):
@@ -70,11 +82,12 @@ def __water(game_map, players, cur_player, cur_char):
     # If character is in the other player's ship, kill him.
     if cur_char.coords in map(lambda pl: pl.ship_coords, players):
         cur_player.characters.remove(cur_char)
-        return
     # If other players are on the same tile, kill them.
-    for character, pl_color in characters:
-        if pl_color != cur_player.color:
-            cl_to_player[pl_color].characters.remove(character)
+    else:
+        for character, pl_color in characters:
+            if pl_color != cur_player.color:
+                cl_to_player[pl_color].characters.remove(character)
+    return True
 
 
 __tile_type_to_start = {
@@ -87,15 +100,26 @@ __tile_type_to_start = {
     'aborigine': __aborigine,
     'trap': __trap,
     'water': __water,
+    'dir_straight': continue_step,
+    'dir_0_180': continue_step,
+    'dir_uplr': continue_step,
+    'dir_45': continue_step,
+    'dir_45_225': continue_step,
+    'dir_diagonal': continue_step,
+    'dir_0_135_270': continue_step,
+    'ice_lake': continue_step,
+    'horses': continue_step,
+    'cannon': continue_step,
+    'crocodile': continue_step,
+    'baloon': continue_step,
 }
 
 
-tile_type_to_start = defaultdict(lambda: default_start)
+tile_type_to_start = defaultdict(lambda: stop_step)
 tile_type_to_start.update(__tile_type_to_start)
 
 
 def start_step(game_map, players, cur_player, cur_char):
-
     tile_type = game_map[cur_char.coords].tile_type
     # Perform preliminary operations.
-    tile_type_to_start[tile_type](game_map, players, cur_player, cur_char)
+    return tile_type_to_start[tile_type](game_map, players, cur_player, cur_char)

@@ -17,12 +17,13 @@ class GameLogic:
         self.game_map = GameMap(tile_size=tile_size)
 
         # Open all tiles. (For Debug)
-        for x in range(0, 13):
-            for y in range(0, 13):
-                self.game_map[y][x].is_open = True
+        # for x in range(0, 13):
+        #     for y in range(0, 13):
+        #         self.game_map[y][x].is_open = True
 
         # Init players.
         self.num_of_players = num_of_players
+        self.moved = False
         self.cur_player = 0
         self.cur_character = 0
         self.players = []
@@ -62,11 +63,14 @@ class GameLogic:
         # Move if inside the bounds.
         pos_turns = self._get_possible_turns()
         if (self.game_map.is_in_bounds(coords) and coords in pos_turns):
+            self.moved = True
             cur_player = self._get_current_player()
             cur_char = self._get_current_character()
             finish_step(self.game_map, cur_player, cur_char)
             self._get_current_character().move(coords)
-            start_step(self.game_map, self.players, cur_player, cur_char)
+            # if turn end, switch to next player
+            if start_step(self.game_map, self.players, cur_player, cur_char):
+                self.next_player()
             # Open corresponding tile. And return true to update the map.
             if not self.game_map[coords].is_open:
                 self.game_map[coords].is_open = True
@@ -125,6 +129,7 @@ class GameLogic:
         return self.game_map.display_possible_turns(painter, pos_turns)
 
     def next_player(self):
+        self.moved = False
         self.cur_player = (self.cur_player + 1) % self.num_of_players
         cur_player = self._get_current_player()
         for i in range(len(cur_player.characters)):
@@ -132,5 +137,7 @@ class GameLogic:
             start_step(self.game_map, self.players, cur_player, cur_char)
 
     def next_character(self):
-        characters = self._get_alive_characters()
-        self.cur_character = (self.cur_character + 1) % len(characters)
+        # Can move only if not yet moved.
+        if not self.moved:
+            characters = self._get_alive_characters()
+            self.cur_character = (self.cur_character + 1) % len(characters)
