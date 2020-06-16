@@ -62,6 +62,21 @@ def __trap(game_map, players, cur_player, cur_char):
         cur_char.prev_coords = cur_char.coords
 
 
+def __water(game_map, players, cur_player, cur_char):
+    characters = map_players_to_positions(players).get(cur_char.coords)
+    cl_to_player = {pl.color:pl for pl in players}
+    players = players.copy()
+    players.remove(cl_to_player[cur_player.color])
+    # If character is in the other player's ship, kill him.
+    if cur_char.coords in map(lambda pl: pl.ship_coords, players):
+        cur_player.characters.remove(cur_char)
+        return
+    # If other players are on the same tile, kill them.
+    for character, pl_color in characters:
+        if pl_color != cur_player.color:
+            cl_to_player[pl_color].characters.remove(character)
+
+
 __tile_type_to_start = {
     'spinning_2': __spinning,
     'spinning_3': __spinning,
@@ -71,6 +86,7 @@ __tile_type_to_start = {
     'ogre': __ogre,
     'aborigine': __aborigine,
     'trap': __trap,
+    'water': __water,
 }
 
 
