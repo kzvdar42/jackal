@@ -17,12 +17,13 @@ class GameLogic:
         self.game_map = GameMap(tile_size=tile_size)
 
         # Open all tiles. (For Debug)
-        for x in range(0, 13):
-            for y in range(0, 13):
-                self.game_map[y][x].open()
+        # for x in range(0, 13):
+        #     for y in range(0, 13):
+        #         self.game_map[y][x].open()
 
         # Init players.
         self.num_of_players = num_of_players
+        self.move_start_coords = None
         self.moved = False
         self.cycles = None
         self.cur_player = 0
@@ -66,6 +67,7 @@ class GameLogic:
         if (self.game_map.is_in_bounds(coords) and coords in pos_turns):
             cur_char = self._get_current_character()
             cur_player = self._get_current_player()
+            prev_coords = cur_char.coords
             finish_step(self.game_map, cur_player, cur_char, coords)
             self._get_current_character().move(coords)
             is_finalized = start_step(self.game_map, self.players, cur_player, cur_char)
@@ -73,6 +75,7 @@ class GameLogic:
             if not is_finalized and not self.moved:
                 cycle_starts = self.detect_cycles()
                 self.cycles = {cs: False for cs in cycle_starts}
+                self.move_start_coords = prev_coords
             self.moved = True
             # If on the cycle starter, increase the counter.
             if self.cycles and coords in self.cycles:
@@ -120,8 +123,10 @@ class GameLogic:
                         n_cycles += 1
                     else:
                         cycles.extend(_detect_cycles(node))
-            # If number of loops is equal to number of subtrees, this node is a start of the loop.
-            return [coord] if nodes and n_cycles == len(nodes) else cycles
+                # If number of loops is equal to number of subtrees, this node is a start of the loop.
+                if nodes and n_cycles == len(nodes):
+                    cycles = [coord]
+            return cycles
 
         path_tree, _ = self.get_path_tree()
         return _detect_cycles(path_tree)
@@ -172,7 +177,11 @@ class GameLogic:
         cur_char = self._get_current_character()
         cur_tile = self.game_map[cur_char.coords]
         if cur_char.object is not None:
-            cur_tile.get_object_from(cur_char)
+            # If already moved, bring object to the starting tile of this move.
+            if not self.moved:
+                cur_tile.get_object_from(cur_char)
+            else:
+                self.game_map[self.move_start_coords].get_object_from(cur_char)
         elif 'money' in cur_tile.objects and cur_tile.objects['money'] > 0:
             self.game_map[cur_char.coords].objects['money'] -= 1
             cur_char.object = 'money'
@@ -213,6 +222,7 @@ class GameLogic:
 
     def next_player(self):
         self.moved = False
+        self.move_start_coords = None
         self.cycles = None
         self.cur_player = (self.cur_player + 1) % self.num_of_players
         cur_player = self._get_current_player()

@@ -4,7 +4,15 @@ from code.data import map_players_to_positions
 
 
 def default_behavior(game_map, players, cur_player, cur_char, coords):
-    return True
+    # If character is holding money, he can't kick others.
+    if cur_char.object == 'money':
+        characters = map_players_to_positions(players).get(coords, [])
+        for character, pl_color in characters:
+            if pl_color != cur_player.color:
+                return False
+    
+    # Can if character is not holding money or tile is already open.
+    return cur_char.object != 'money' or game_map[coords].is_open
 
 
 def water(game_map, players, cur_player, cur_char, coords):
@@ -18,6 +26,8 @@ def water(game_map, players, cur_player, cur_char, coords):
 
 
 def fort(game_map, players, cur_player, cur_char, coords):
+    if cur_char.object is not None:
+        return False
     characters = map_players_to_positions(players).get(coords, [])
     for character, pl_color in characters:
         if pl_color != cur_player.color:

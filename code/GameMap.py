@@ -154,6 +154,8 @@ class GameMap:
                 # Set random direction
                 tile_dir = random.sample(Tile.get_tile_dirs(), 1)[0]
                 game_map[x][y] = Tile(tile_type, tile_dir)
+                if tile_type == 'water':
+                    game_map[x][y].is_open = True
 
         assert len(tiles) == 0, \
             'All tiles must be used during the map creation!'
