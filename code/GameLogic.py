@@ -64,9 +64,17 @@ class GameLogic:
         """
         # Move if inside the bounds.
         pos_turns = self._get_possible_turns()
+        cur_char = self._get_current_character()
+        cur_player = self._get_current_player()
+        # XXX: Find better place for detection of this.
+        # As this code executed only on user input.
+        # Remove character if no possible turns from this point.
+        if len(pos_turns) == 0 and cur_char.object != 'money':
+            cur_player.characters.remove(cur_char)
+            self.next_player()
+            return False
+
         if (self.game_map.is_in_bounds(coords) and coords in pos_turns):
-            cur_char = self._get_current_character()
-            cur_player = self._get_current_player()
             prev_coords = cur_char.coords
             finish_step(self.game_map, cur_player, cur_char, coords)
             self._get_current_character().move(coords)
