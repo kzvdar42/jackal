@@ -77,9 +77,10 @@ class GameLogic:
             # If on the cycle starter, increase the counter.
             if self.cycles and coords in self.cycles:
                 # If stepped two times, it means that you returned back to the cycle start.
-                # Terminate the character.
+                # Terminate the character and move to the next player.
                 if self.cycles[coords]:
                     cur_player.characters.remove(cur_char)
+                    is_finalized = True
                 else:
                     self.cycles[coords] = True
             # if turn end, switch to next player.
@@ -93,16 +94,16 @@ class GameLogic:
 
     def detect_cycles(self):
 
-        def _return_leaves(tree, res=None):
+        def _return_leaves(tree):
             """Return leaves of given tree.
             """
-            res = res or []
+            res = set()
             if isinstance(tree, Coords):
-                res.append(tree)
+                res.add(tree)
             else:
                 for nodes in tree.values():
                     for node in nodes:
-                        res.extend(_return_leaves(node))
+                        res.update(_return_leaves(node))
             return res
 
         def _detect_cycles(tree):
