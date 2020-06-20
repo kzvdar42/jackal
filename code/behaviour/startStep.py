@@ -29,6 +29,10 @@ def spinning(game_map, players, cur_player, cur_char):
 
 def drinking_rum(game_map, players, cur_player, cur_char):
     # Firstly kick others
+    characters = map_players_to_positions(players).get(cur_char.coords)
+    for character, pl_color in characters:
+        if pl_color != cur_player.color:
+            character.state = 'alive'
     default_start(game_map, players, cur_player, cur_char)
     if cur_char.state == 'alive' and cur_char.prev_coords != cur_char.coords:
         cur_char.state = 'drunk'
