@@ -29,7 +29,7 @@ def spinning(game_map, players, cur_player, cur_char):
 
 def drinking_rum(game_map, players, cur_player, cur_char):
     # Firstly kick others
-    default_start(game_map, players, cur_player)
+    default_start(game_map, players, cur_player, cur_char)
     if cur_char.state == 'alive' and cur_char.prev_coords != cur_char.coords:
         cur_char.state = 'drunk'
     elif cur_char.state == 'drunk':
