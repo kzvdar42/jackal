@@ -80,3 +80,39 @@ class Coords(Iterable):
 
     def __rfloordiv__(self, other):
         return self.__perform_op(operator.floordiv, other, from_right=True)
+
+
+def direction_offset(coords, side, direction):
+    offset = Coords(*{  # by default forward
+        0: (1, 0),
+        1: (0, -1),
+        2: (-1, 0),
+        3: (0, 1)
+    }[side])
+    if direction == 'backwards':
+        offset = -offset
+    elif direction == 'left':
+        offset = Coords(*(reversed(offset)))
+    elif direction == 'right':
+        offset = Coords(*reversed(-offset))
+    elif direction != 'forward':
+        raise ValueError('Unknown direction')
+    return coords + offset
+
+
+def straight_offset(coords, direction):
+    return coords + {
+        0: (0, -1),
+        90: (1, 0),
+        180: (0, 1),
+        270: (-1, 0),
+    }[direction]
+
+
+def diagonal_offset(coords, direction):
+    return coords + {
+        0: (1, -1),
+        90: (1, 1),
+        180: (-1, 1),
+        270: (-1, -1),
+    }[direction]

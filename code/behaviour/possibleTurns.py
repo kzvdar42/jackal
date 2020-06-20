@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from code.behaviour import get_tile_behavior
-from code.data import Tile, Coords
+from code.data import Tile, Coords, direction_offset, straight_offset, diagonal_offset
 
 
 def default_turns(game_map, cur_player, cur_char):
@@ -14,42 +14,6 @@ def default_turns(game_map, cur_player, cur_char):
             coords = cur_char.coords + (x_offset, y_offset)
             pos_turns.append(coords)
     return pos_turns
-
-
-def direction_offset(coords, side, direction):
-    offset = Coords(*{  # by default forward
-        0: (1, 0),
-        1: (0, -1),
-        2: (-1, 0),
-        3: (0, 1)
-    }[side])
-    if direction == 'backwards':
-        offset = -offset
-    elif direction == 'left':
-        offset = Coords(*(reversed(offset)))
-    elif direction == 'right':
-        offset = Coords(*reversed(-offset))
-    elif direction != 'forward':
-        raise ValueError('Unknown direction')
-    return coords + offset
-
-
-def straight_offset(coords, direction):
-    return coords + {
-        0: (0, -1),
-        90: (1, 0),
-        180: (0, 1),
-        270: (-1, 0),
-    }[direction]
-
-
-def diagonal_offset(coords, direction):
-    return coords + {
-        0: (1, -1),
-        90: (1, 1),
-        180: (-1, 1),
-        270: (-1, -1),
-    }[direction]
 
 
 def water(game_map, cur_player, cur_char):
