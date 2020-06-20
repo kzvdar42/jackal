@@ -3,7 +3,7 @@ from collections import defaultdict
 from code.behaviour import get_tile_behavior
 from code.data import Tile, Coords
 
-
+# TODO: Add handling of money.
 def default_turns(game_map, cur_player, cur_char):
     pos_turns = []
     for y_offset in range(-1, 2):

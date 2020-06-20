@@ -6,9 +6,11 @@ from code.data import Tile, map_players_to_positions
 def default_start(game_map, players, cur_player, cur_char):
     characters = map_players_to_positions(players).get(cur_char.coords)
     cl_to_player = {pl.color: pl for pl in players}
+    # If meets other player, kick him.
     for character, pl_color in characters:
         if pl_color != cur_player.color:
-            character.coords = cl_to_player[pl_color].ship_coords
+            dropped_obj = character.move(cl_to_player[pl_color].ship_coords, is_kicked=True)
+            game_map[cur_char.coords].add_object(dropped_obj)
 
 
 def spinning(game_map, players, cur_player, cur_char):
@@ -16,15 +18,18 @@ def spinning(game_map, players, cur_player, cur_char):
     assert cur_char.spin_counter <= max_spin, "Spin counter can't be greater than max_spin"
     if cur_char.spin_counter < 1:
         cur_char.spin_counter = 1
-    # Move other players on the same spin subtile to their ship.
+    # Kick other players on the same spin subtile to their ship.
     characters = map_players_to_positions(players).get(cur_char.coords)
     cl_to_player = {pl.color: pl for pl in players}
     for character, pl_color in characters:
         if character.spin_counter == cur_char.spin_counter and pl_color != cur_player.color:
-            character.coords = cl_to_player[pl_color].ship_coords
+            dropped_obj = character.move(cl_to_player[pl_color].ship_coords, is_kicked=True)
+            game_map[cur_char.coords].add_object(dropped_obj)
 
 
 def drinking_rum(game_map, players, cur_player, cur_char):
+    # Firstly kick others
+    default_start(game_map, players, cur_player)
     if cur_char.state == 'alive' and cur_char.prev_coords != cur_char.coords:
         cur_char.state = 'drunk'
     elif cur_char.state == 'drunk':
@@ -35,6 +40,7 @@ def drinking_rum(game_map, players, cur_player, cur_char):
 
 
 def ogre(game_map, players, cur_player, cur_char):
+    game_map[cur_char.coords].get_object_from(cur_char)
     cur_player.characters.remove(cur_char)
 
 
@@ -56,7 +62,8 @@ def trap(game_map, players, cur_player, cur_char):
         character.prev_coords = cur_char.coords
         # If other player kick him.
         if pl_color != cur_player.color:
-            character.coords = cl_to_player[pl_color].ship_coords
+            dropped_obj = character.move(cl_to_player[pl_color].ship_coords, is_kicked=True)
+            game_map[cur_char.coords].add_object(dropped_obj)
     # If noone was trapped, you get trapped.
     if not is_smn_trapped and cur_char.prev_coords != cur_char.coords:
         cur_char.state = 'trapped'
@@ -68,16 +75,25 @@ def trap(game_map, players, cur_player, cur_char):
 def water(game_map, players, cur_player, cur_char):
     characters = map_players_to_positions(players).get(cur_char.coords)
     cl_to_player = {pl.color: pl for pl in players}
-    players = players.copy()
-    players.remove(cl_to_player[cur_player.color])
-    # If character is in the other player's ship, kill him.
-    if cur_char.coords in map(lambda pl: pl.ship_coords, players):
-        cur_player.characters.remove(cur_char)
+    cur_tile = game_map[cur_char.coords]
+    dead, ship_color = False, ''
+    for pl in players:
+        if cur_char.coords == pl.ship_coords:
+            ship_color = pl.color
+            cl_to_player[pl.color].get_object_from(cur_char)
+            # If character is in the other player's ship, kill him.
+            if cur_player.color != pl.color:
+                cur_player.characters.remove(cur_char)
+                dead = True
     # If other players are on the same tile, kill them.
-    else:
+    if not dead:
         for character, pl_color in characters:
             if pl_color != cur_player.color:
+                if ship_color:
+                    cl_to_player[ship_color].get_object_from(character)
                 cl_to_player[pl_color].characters.remove(character)
+    # Remove object if character is holding one.
+    cur_char.object = None
 
 
 __tile_type_to_start = {

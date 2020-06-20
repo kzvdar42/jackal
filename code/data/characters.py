@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 
 class Character:
@@ -21,10 +21,17 @@ class Character:
         self.state = 'alive'
         self.spin_counter = -1
         self.prev_coords = coords
+        self.object = None
 
-    def move(self, coords):
+    def move(self, coords, is_kicked=False):
         self.prev_coords = self.coords
         self.coords = coords
+        if is_kicked:
+            dropped_object = self.object
+            self.object = None
+            return dropped_object
+        else:
+            return None
 
 
 class Player:
@@ -43,8 +50,14 @@ class Player:
         self.color = color
         self.side = side
         self.ship_coords = start_coords
+        self.objects = Counter()
         self.characters = [Character(start_coords, ch_type='pirate')
                            for _ in range(3)]
+
+    def get_object_from(self, character: Character):
+        if character.object is not None:
+            self.objects.update([character.object])
+        character.object = None
 
     def add_character(self, start_coords, ch_type):
         self.characters.append(Character(start_coords, ch_type))

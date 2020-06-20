@@ -1,3 +1,18 @@
+from collections import Counter, defaultdict
+
+
+__objects_on_open = {
+    'money_1': {'money': 1},
+    'money_2': {'money': 2},
+    'money_3': {'money': 3},
+    'money_4': {'money': 4},
+    'money_5': {'money': 5},
+}
+
+objects_on_open = defaultdict(dict)
+objects_on_open.update(__objects_on_open)
+
+
 class Tile:
 
     @staticmethod
@@ -23,12 +38,22 @@ class Tile:
         self.tile_type = tile_type
         self.direction = direction
         self.is_open = False
+        self.objects = Counter()
         self.active = True
-        self.objects = []
 
     def open(self):
         self.is_open = True
+        self.objects.update(objects_on_open[self.tile_type])
         pass
+
+    def add_object(self, object: str):
+        if object:
+            self.objects.update([object])
+
+    def get_object_from(self, character):
+        if character.object is not None:
+            self.objects.update([character.object])
+        character.object = None
 
     def __repr__(self):
         return f'<Tile: {self.tile_type}>'

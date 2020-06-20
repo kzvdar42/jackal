@@ -62,6 +62,8 @@ class App(QWidget):
             self.game_logic.display_map(pixmap_painter)
         # Draw the game map.
         painter.drawPixmap(0, 0, self.pixmap)
+        # Draw objects on map.
+        self.game_logic.display_objects_on_map(painter)
         # Draw possible turns.
         self.game_logic.display_possible_turns(painter)
         # Draw the players.
@@ -87,7 +89,7 @@ class App(QWidget):
             if self.game_logic.move_character(self.__key_to_direction[self.key_press]):
                 self.update()
         elif self.key_press == Qt.Key_Return:
-            self.game_logic.next_player()
+            self.game_logic.pick_money()
         # Next character.
         elif self.key_press == Qt.Key_Alt:
             self.game_logic.next_character()

@@ -19,7 +19,7 @@ class GameLogic:
         # Open all tiles. (For Debug)
         for x in range(0, 13):
             for y in range(0, 13):
-                self.game_map[y][x].is_open = True
+                self.game_map[y][x].open()
 
         # Init players.
         self.num_of_players = num_of_players
@@ -87,7 +87,7 @@ class GameLogic:
                 self.next_player()
             # Open corresponding tile. And return true to update the map.
             if not self.game_map[coords].is_open:
-                self.game_map[coords].is_open = True
+                self.game_map[coords].open()
                 return True
         return False
 
@@ -167,6 +167,18 @@ class GameLogic:
             coords += (0, 1)
         return self._move_character(coords)
 
+    def pick_money(self):
+        cur_char = self._get_current_character()
+        cur_tile = self.game_map[cur_char.coords]
+        if cur_char.object is not None:
+            cur_tile.get_object_from(cur_char)
+        elif 'money' in cur_tile.objects and cur_tile.objects['money'] > 0:
+            self.game_map[cur_char.coords].objects['money'] -= 1
+            cur_char.object = 'money'
+        else:
+            return False
+        return True
+
     def _get_possible_turns(self):
         """Get possible turns for current character.
         """
@@ -178,7 +190,7 @@ class GameLogic:
         args = self.game_map, self.players, cur_player, cur_char
         pos_turns = get_possible_turns(*args)
         # Accept turn only if you can step on this tile right now.
-        can_step = lambda coord: get_tile_behavior(self.game_map[coord].tile_type)(*args, coord)
+        def can_step(coord): return get_tile_behavior(self.game_map[coord].tile_type)(*args, coord)
         pos_turns = [coord for coord in pos_turns if can_step(coord)]
         return pos_turns
 
@@ -187,6 +199,9 @@ class GameLogic:
 
     def get_map_shape(self):
         return self.game_map.scale_coords(self.game_map.get_map_shape())
+
+    def display_objects_on_map(self, painter: QPainter):
+        return self.game_map.display_objects_on_map(painter)
 
     def display_players(self, painter: QPainter):
         return self.game_map.display_players(painter, self.players, self._get_current_character())

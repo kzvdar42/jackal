@@ -174,8 +174,14 @@ class GameMap:
             coords = Coords(*coords)
         return coords // self.tile_size
 
+    def get_object_color(self, object_name):
+        return {
+            'money': QColor(32, 107, 40)
+        }[object_name]
+
     def display_map(self, painter: QPainter):
         for coord, tile in np.ndenumerate(self.game_map):
+            coord = Coords(*coord)
             # TODO: Add 'water' tile image.
             if tile.tile_type == 'water':
                 continue
@@ -184,10 +190,36 @@ class GameMap:
             else:
                 tile_img = self.tile_images['back']
             # Move to the center of tile, rotate, move back
-            painter.translate(*self.scale_coords(Coords(*coord) + (0.5, 0.5)))
+            painter.translate(*self.scale_coords(coord + (0.5, 0.5)))
             painter.rotate(tile.direction)
             painter.drawImage(*self.scale_coords((-0.5, -0.5)), tile_img)
             painter.resetTransform()
+
+    def display_objects_on_map(self, painter: QPainter):
+        for coord, tile in np.ndenumerate(self.game_map):
+            coord = Coords(*coord)
+            # Display objects
+            objects = self[coord].objects
+            self.display_objects(painter, coord, objects)
+
+    def display_objects(self, painter: QPainter, coord: Coords, objects):
+        painter.save()
+        for i, (obj_name, obj_counter) in enumerate(objects.items()):
+            # If no objects left, skip.
+            if obj_counter < 1:
+                continue
+            ellipse_size = self.tile_size / max(3, len(objects))
+            rect_pos = self.scale_coords(coord) + (i * ellipse_size, 0)
+            rect = QRect(*rect_pos, ellipse_size, ellipse_size)
+            # Draw ellipse
+            painter.setBrush(QBrush(self.get_object_color(obj_name), Qt.SolidPattern))
+            painter.drawEllipse(rect)
+            # Draw the amount
+            painter.setPen(QPen(QColor('black'), 3))
+            text = str(obj_counter)
+            text_br = painter.boundingRect(rect, Qt.AlignCenter, text)
+            painter.drawText(text_br, 1, text)
+        painter.restore()
 
     def display_players(self, painter: QPainter,
                         players: List[Player], cur_character: Character):
@@ -203,6 +235,8 @@ class GameMap:
             pl_boat = QImage(os.path.join('tile_images', f'boat_{player.color}.png'))
             pl_boat = pl_boat.scaled(self.tile_size, self.tile_size)
             painter.drawImage(*self.scale_coords(player.ship_coords), pl_boat)
+            # Display objects on ship.
+            self.display_objects(painter, player.ship_coords, player.objects)
 
         # Extract positions.
         positions = map_players_to_positions(players)
@@ -227,6 +261,13 @@ class GameMap:
                     text = str(character.spin_counter)
                     text_br = painter.boundingRect(rect, Qt.AlignCenter, text)
                     painter.drawText(text_br, 1, text)
+                # Display the object if character is holding one.
+                if character.object is not None:
+                    painter.setPen(Qt.NoPen)
+                    obj_pos = rect_pos + 1 / 3 * ellipse_size
+                    obj_rect = QRect(*obj_pos, ellipse_size / 3, ellipse_size / 3)
+                    painter.setBrush(QBrush(self.get_object_color(character.object), Qt.SolidPattern))
+                    painter.drawEllipse(obj_rect)
                 # Display the glow outside the current player.
                 if character is cur_character:
                     painter.setBrush(Qt.NoBrush)
